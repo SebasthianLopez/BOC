@@ -29,6 +29,14 @@ agente usa ese contexto para:
 Rechazar una propuesta no crea tareas. Aprobar la misma propuesta dos veces no
 debe duplicarlas.
 
+## Caso oficial de demo
+
+La demo usa una decisión concreta: elegir entre **Stripe** y **dLocal** como
+pasarela de pagos para BOC Academy en Paraguay y Brasil. Empieza con huecos de
+costo, cobertura local y responsable de compliance; termina con una propuesta
+revisable y compromisos persistentes. El guion, datos iniciales y contratos
+exactos están en [PROYECTO.md](PROYECTO.md).
+
 ## Por qué el contexto importa
 
 El agente no recibe una pregunta aislada: lee el mapa de decisión que la persona
