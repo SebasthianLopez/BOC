@@ -32,7 +32,7 @@ export const researchAlternativeTool = defineTool({
 
 export const proposeDecisionTool = defineTool({
   name: "propose_decision",
-  description: "Prepare a reviewable Proposal with commitments. It never decides or creates tasks.",
+  description: "The sole source of a Decision Desk Proposal. Call this before open_proposal and pass its returned Proposal unchanged to that visual tool. It prepares exactly two official commitments with relative due dates; it never decides or creates tasks.",
   parameters: proposeDecisionParameters,
   execute: async ({ decision }) => proposeDecision(decision),
 });

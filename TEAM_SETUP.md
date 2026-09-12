@@ -51,9 +51,9 @@ Cada persona crea y usa solamente su rama.
 | Rol | Rama | Puede modificar |
 | --- | --- | --- |
 | P1 — Frontend | `p1/decision-map` | `apps/web/src/components/**`, `apps/web/src/app/page.tsx` |
-| P2 — Agente | `p2/decision-agent` | `packages/agent-core/**` |
+| P2 — Agente y presentador | `p2/decision-agent` | `packages/agent-core/**`; presenta y graba siguiendo `DEMO_RUNBOOK.md` |
 | P3 — Servidor | `p3/decision-commitments` | `apps/web/src/lib/**`, `apps/web/src/app/api/**` |
-| P4 — Integración | `p4/*` | Documentación, demo, README, SUBMISSION y coordinación Git |
+| P4 — Integración | `p4/*` | Documentación, preparación de demo, README, SUBMISSION y coordinación Git |
 
 Ejemplo para P2:
 

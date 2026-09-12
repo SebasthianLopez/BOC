@@ -20,3 +20,7 @@ Mirror these shapes with Zod without importing app code: `Gap` is `{ kind: "evid
 ## Done
 
 Use page context first, distinguish evidence from inference, request approval with `Proposal`, and run `npm run typecheck` plus relevant checks. Report exact files and P1/P3 dependencies.
+
+## Demo lead
+
+P2 is also the presenter and recorder of the official two-minute demo. This does not expand the source-code scope above. Once P4 confirms that integrated `main` is ready, read `DEMO_RUNBOOK.md` completely, rehearse its exact prompts, and record only verified live behavior. Do not expose credentials, improvise provider claims, approve a proposal with a past date, or claim that an external task exists without showing its ID in the app or its record in the Ambiguous test workspace.

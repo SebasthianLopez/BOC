@@ -23,7 +23,9 @@ Reglas no negociables:
 - Solo una aprobación explícita en la página permite crear tareas en Ambiguous.
 - Rechazar crea cero tareas.
 - La misma aprobación no duplica tareas.
-- Las URLs, fuentes e IDs provienen de servicios reales; no se inventan.
+- Las URLs, fuentes e IDs provienen de servicios reales; no se inventan. Si
+  Ambiguous no entrega una URL individual, se conserva `url: null` y se
+  verifica el registro mediante su ID en el workspace de prueba.
 - Sin una key configurada, se informa la limitación de manera visible.
 
 ## Stack y límite de alcance
@@ -88,8 +90,9 @@ que devuelva el servicio.
      siguiente hito.
 
 7. Rechazar la primera propuesta y comprobar que no se creó ninguna tarea.
-8. Aprobar la segunda propuesta, mostrar IDs/enlaces de Ambiguous y recargar la
-   página para comprobar persistencia.
+8. Aprobar la segunda propuesta, mostrar IDs de Ambiguous y los enlaces que el
+   proveedor entregue, verificar los registros en el workspace de prueba y
+   recargar la página para comprobar persistencia.
 
 ## Contratos entre roles
 
@@ -112,7 +115,8 @@ P1–P3 deben respetar exactamente:
 ```ts
 POST /api/followups
 // recibe Proposal aprobada
-// responde { commitments: [{ title, owner, dueDate, ambiguousId, url }] }
+// responde { commitments: [{ title, owner, dueDate, ambiguousId,
+//   url: string | null }] }
 ```
 
 Las herramientas P2–P1 devuelven exactamente `Gap[]`, `Evidence[]` y
@@ -129,6 +133,11 @@ Las herramientas P2–P1 devuelven exactamente `Gap[]`, `Evidence[]` y
 
 P1, P2 y P3 no editan fuera de su alcance y nunca hacen push a `main`. P4
 integra los Pull Requests; el orden recomendado es P3, P2 y P1.
+
+P2 es el presentador y responsable de grabar el video oficial siguiendo
+`DEMO_RUNBOOK.md`. P4 prepara el entorno integrado, supervisa la verificación y
+revisa el archivo final antes de publicarlo. Esta responsabilidad de presentación
+no amplía el alcance de código de P2.
 
 ## Verificación y entrega
 

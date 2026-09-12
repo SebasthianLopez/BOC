@@ -9,6 +9,9 @@ import {
   type ResearchAlternativeArgs,
 } from "./schemas";
 
+/** A relative deadline is safe for the official demo and never becomes stale. */
+export const OFFICIAL_DUE_DATE = "Antes del siguiente hito";
+
 const SEARCH_TYPE = (process.env.EXA_SEARCH_TYPE ?? "fast") as
   "instant" | "fast" | "auto" | "deep-lite" | "deep" | "deep-reasoning";
 
@@ -124,12 +127,12 @@ export function proposeDecision(decision: Decision): Proposal {
       {
         title: `Crear una prueba de integración/sandbox con ${target}`,
         owner: "Diego",
-        dueDate: "Antes del siguiente hito",
+        dueDate: OFFICIAL_DUE_DATE,
       },
       {
         title: "Solicitar cotización y validar requisitos de compliance",
         owner: "Sofía",
-        dueDate: "Antes del siguiente hito",
+        dueDate: OFFICIAL_DUE_DATE,
       },
     ],
   };
