@@ -19,7 +19,7 @@ export type Commitment = {
   owner: string;
   dueDate: string;
   ambiguousId: string;
-  url: string;
+  url: string | null;
 };
 export type CommitmentsStatus =
   | { status: "unconfigured"; message: string }

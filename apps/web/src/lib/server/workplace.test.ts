@@ -91,6 +91,14 @@ test("real MCP text and structured results return provider IDs and never synthes
     "https://app.ambiguous.ai/returned-record-link",
   );
 });
+test("create, get, and list preserve a missing provider URL", async () => {
+  const c = new Connection();
+  const api = new AmbiguousWorkplace(c);
+  assert.equal((await api.create("Follow up", "Marker", async () => {})).url, null);
+  assert.equal((await api.get(id)).url, null);
+  c.result = { content: [], structuredContent: { data: [task], has_more: false } };
+  assert.equal((await api.list("Marker"))[0].url, null);
+});
 test("schema drift prevents writes before callTool", async () => {
   const c = new Connection();
   c.catalog = { tools: [] };
