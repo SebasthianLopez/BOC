@@ -1,5 +1,8 @@
 # Notes for coding agents
 
+**Start with [PROYECTO.md](PROYECTO.md)** for the Decision Desk product,
+contracts, role boundaries, and delivery rules.
+
 Read [hackathon-overview.md](hackathon-overview.md), [hackathon-rules.md](hackathon-rules.md), and [using-sponsor-tools.md](using-sponsor-tools.md), then the chosen app README in `apps/channel`, `apps/web`, or `apps/mobile`. Build the team's own workflow; the incident app is infrastructure reference code.
 
 CopilotKit powers the Slack and web templates. The mobile starting point in `apps/mobile` has its own install and environment; follow its README for setup and checks.
