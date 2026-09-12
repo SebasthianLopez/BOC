@@ -1,39 +1,35 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import {
   CopilotChat,
   useConfigureSuggestions,
 } from "@copilotkit/react-core/v2";
-import { GenerativeUI } from "@/components/generative-ui";
 import { AppControl } from "@/components/app-control";
-import { findIncident, incidents, workspaceContext } from "@/lib/incidents";
-import { useWorkplace } from "@/lib/use-workplace";
-import { WorkplaceFollowups } from "@/components/workplace-followups";
+import { GenerativeUI } from "@/components/generative-ui";
+import { DecisionDesk } from "@/components/decision-desk/decision-desk";
+import styles from "@/components/decision-desk/decision-desk.module.css";
+import { useDecisionWorkplace } from "@/lib/use-decision-workplace";
 
 export default function Home() {
-  const [selectedId, setSelectedId] = useState<string>(incidents[0].id);
-  const workplace = useWorkplace(selectedId);
-  const { selectedIncident: incident } = workspaceContext(
-    selectedId,
-    workplace.status?.status === "connected" ? workplace.status.tasks : [],
-  );
-  const selectIncident = useCallback((id: string) => {
-    setSelectedId(findIncident(id).id);
-  }, []);
+  const workplace = useDecisionWorkplace();
 
   useConfigureSuggestions(
     {
       suggestions: [
         {
-          title: "Summarize this incident",
+          title: "Qué falta para decidir",
           message:
-            "Summarize the selected incident using the page context. What needs attention?",
+            "Leé la decisión de la página y decime qué falta: qué alternativa y criterio siguen sin evidencia, y qué compromiso no tiene responsable.",
         },
         {
-          title: "Propose a follow-up",
+          title: "Investigá dLocal",
           message:
-            "Prepare one useful Ambiguous follow-up for the selected incident. Show me the proposal before it is saved.",
+            "Investigá cobertura local y costos de dLocal para Paraguay y Brasil, y fijá la evidencia en el mapa con las fuentes que encuentres.",
+        },
+        {
+          title: "Proponé compromisos",
+          message:
+            "Con lo que hay en la página, recomendá un camino provisional y dejá los compromisos listos para que yo los apruebe. No crees nada todavía.",
         },
       ],
       available: "before-first-message",
@@ -42,100 +38,52 @@ export default function Home() {
   );
 
   return (
-    <>
+    /*
+     * El shell fija la paleta oficial y remapea los tokens del starter, así que
+     * todo lo que queda adentro se reskinea sin tocar globals.css.
+     */
+    <div className={styles.shell}>
       <GenerativeUI />
-      <AppControl
-        selectedId={selectedId}
-        selectIncident={selectIncident}
-        workplace={workplace}
-      />
+      <AppControl workplace={workplace} />
       <main className="ck-workspace">
+        {/* Encabezado compacto: esto es una mesa de trabajo, no una portada. */}
         <header className="ck-workspace-header">
           <div>
-            <p className="ck-eyebrow">Agents, everywhere · Web example</p>
-            <h1>Incident assistant</h1>
-            <p className="ck-intro">
-              Pick an incident. Ask your assistant. Review a follow-up.
-            </p>
+            <p className="ck-eyebrow">Breakfast of Champions · Decision Desk</p>
+            <h1>Decisión del equipo</h1>
           </div>
-          <span className="ck-tag">Sample data</span>
+          <span className="ck-tag">Caso de demo</span>
         </header>
 
-        <div className="ck-workspace-grid">
-          <section className="ck-panel" aria-labelledby="incident-title">
-            <div className="ck-incident-picker">
-              <label htmlFor="incident-select">Incident</label>
-              <select
-                id="incident-select"
-                value={selectedId}
-                onChange={(event) => selectIncident(event.target.value)}
-              >
-                {incidents.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.id} · {item.service}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className={styles.grid}>
+          <div className={styles.deskColumn}>
+            <DecisionDesk workplace={workplace} />
+          </div>
 
-            <div className="ck-detail">
-              <span className="ck-status-label">{incident.status}</span>
-              <h2 id="incident-title">{incident.title}</h2>
-              <p>{incident.summary}</p>
-              <details className="ck-more" key={incident.id}>
-                <summary>Details &amp; timeline</summary>
-                <dl className="ck-detail-facts">
-                  <div>
-                    <dt>Incident lead</dt>
-                    <dd>{incident.owner}</dd>
-                  </div>
-                  <div>
-                    <dt>Severity</dt>
-                    <dd>{incident.severity}</dd>
-                  </div>
-                  <div>
-                    <dt>Last update</dt>
-                    <dd>{incident.updated}</dd>
-                  </div>
-                </dl>
-                <h3>Impact</h3>
-                <p>{incident.impact}</p>
-                <h3>Timeline</h3>
-                <ol className="ck-timeline">
-                  {incident.timeline.map((event) => (
-                    <li key={event.time}>
-                      <time>{event.time} UTC</time>
-                      <div>
-                        <strong>{event.author}</strong>
-                        <p>{event.detail}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </details>
-            </div>
-
-            <WorkplaceFollowups incidentId={selectedId} workplace={workplace} />
-          </section>
-
-          <section
-            className="ck-panel ck-assistant"
-            aria-labelledby="assistant-title"
-          >
-            <header className="ck-assistant-header">
-              <h2 id="assistant-title">Ask assistant</h2>
-              <p>It can read this incident and prepare follow-ups.</p>
-            </header>
-            <CopilotChat
-              className="ck-chat"
-              labels={{
-                welcomeMessageText: "What needs attention?",
-                chatInputPlaceholder: "Ask about this incident…",
-              }}
-            />
-          </section>
+          <div className={styles.chatColumn}>
+            <section
+              className="ck-panel ck-assistant"
+              aria-labelledby="assistant-title"
+            >
+              <header className="ck-assistant-header">
+                <h2 id="assistant-title">Facilitador</h2>
+                <p>
+                  Encuentra huecos, adjunta evidencia investigada y deja
+                  compromisos listos para tu aprobación. No puede crear nada por
+                  su cuenta.
+                </p>
+              </header>
+              <CopilotChat
+                className="ck-chat"
+                labels={{
+                  welcomeMessageText: "¿Qué está trabando esta decisión?",
+                  chatInputPlaceholder: "Preguntá sobre esta decisión…",
+                }}
+              />
+            </section>
+          </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }
