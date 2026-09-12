@@ -13,6 +13,8 @@ evaluation criteria, participants, evidence, and unresolved gaps. The agent can
 research and propose actions, but only an explicit human approval can create
 tasks in Ambiguous.
 
+[Watch the Decision Desk walkthrough](assets/demos/decision-desk-walkthrough.mp4).
+
 ## How it works
 
 ```text
