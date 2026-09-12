@@ -73,7 +73,8 @@ git pull --ff-only origin p2/decision-agent
 
 Siempre iniciá Codex o Claude Code desde la carpeta raíz `BOC`. Antes de pedir
 una tarea, enviá el prompt de tu rol. Esto funciona incluso si la IA no muestra
-una skill en un selector visual.
+una skill en un selector visual. Los prompts completos de implementación y
+entrega están en [AI_ROLE_TASKS.md](AI_ROLE_TASKS.md).
 
 ### P1
 
