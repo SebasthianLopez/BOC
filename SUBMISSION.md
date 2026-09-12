@@ -60,7 +60,9 @@ Judges score each of the four official criteria from 1–5. This checklist helps
 - [ ] State which sponsor technologies made the interaction possible
 - [ ] Keep the video within the event's limit and check audio
 
-See [demo prompts](dev-docs/demo-prompts.md) for a reproducible incident workflow.
+For Decision Desk, follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md). The inherited
+[demo prompts](dev-docs/demo-prompts.md) remain reference material for the
+starter's incident workflow and are not the submission script.
 
 ## Social post and final submission
 

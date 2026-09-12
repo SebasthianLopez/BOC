@@ -15,7 +15,7 @@ Only edit `apps/web/src/app/page.tsx` and `apps/web/src/components/**`. Do not e
 
 ## Contracts
 
-Use `Decision`, `Criterion`, `Alternative`, `Evidence`, `Gap`, and `Proposal` from `apps/web/src/lib/decisions.ts`. Use `useDecisionWorkplace` from `apps/web/src/lib/use-decision-workplace.ts`. Approval returns `{ commitments: [{ title, owner, dueDate, ambiguousId, url }] }`.
+Use `Decision`, `Criterion`, `Alternative`, `Evidence`, `Gap`, and `Proposal` from `apps/web/src/lib/decisions.ts`. Use `useDecisionWorkplace` from `apps/web/src/lib/use-decision-workplace.ts`. Approval returns `{ commitments: [{ title, owner, dueDate, ambiguousId, url: string | null }] }`.
 
 Register context and frontend tools that present `Gap[]`, `Evidence[]`, and a `Proposal`. The approval control calls the P3 adapter. Text in chat never authorizes a write.
 
@@ -37,4 +37,4 @@ Never use white text on Banana Cream or Sandy Brown. Prefer Midnight Violet on b
 
 ## Done
 
-Show alternatives × criteria, evidence and gaps; render every commitment before Approve/Decline; display returned IDs/links after approval; state plainly that decline created nothing. Do not invent evidence, links, or IDs. Follow the acceptance checklist in `FRONTEND_STYLE.md`. Run relevant web checks and report files changed.
+Show alternatives × criteria, evidence and gaps; render every commitment before Approve/Decline; always display returned IDs and render record links only when `url` is non-null; state plainly that decline created nothing. Do not invent evidence, links, or IDs. Follow the acceptance checklist in `FRONTEND_STYLE.md`. Run relevant web checks and report files changed.
