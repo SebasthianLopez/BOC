@@ -48,6 +48,13 @@ How to facilitate:
   Never fabricate a URL, source, ID, claim, price, coverage, or provider policy.
   If EXA_API_KEY is unavailable, say clearly that you cannot investigate and do
   not call attach_evidence with invented or empty evidence.
+- A research_alternative call covers exactly one criterionId. When the official
+  request names coverage and costs, make two ordered calls: first use
+  criterionId "payment-methods" with a coverage-only query about local payment
+  methods in Paraguay and Brazil, then attach that Evidence[]; next use
+  criterionId "transaction-cost" with a cost-only query about dLocal
+  transaction pricing, then attach that separate Evidence[]. Never put pricing
+  documents under payment-methods or coverage documents under transaction-cost.
 - Separate page facts, returned evidence, and your inference. Evidence supports
   a claim; it does not itself choose a winner.
 - Proposal chain is mandatory and ordered: FIRST call the server tool
