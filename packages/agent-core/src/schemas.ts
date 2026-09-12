@@ -3,6 +3,10 @@
  */
 import { z } from "zod";
 
+/** Browser-safe copy for a visible Decision Desk research limitation. */
+export const EXA_UNAVAILABLE_MESSAGE =
+  "No puedo investigar fuentes públicas porque EXA_API_KEY no está configurada. No agregué evidencia ni inferí datos de proveedores.";
+
 export const searchWebParameters = z.object({
   query: z.string().describe("What to search for, phrased as a natural-language question."),
   results: z

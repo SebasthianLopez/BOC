@@ -4,16 +4,17 @@ import {
   type Evidence,
   type Gap,
   type Proposal,
+  EXA_UNAVAILABLE_MESSAGE,
   researchAlternativeParameters,
   type ResearchAlternativeArgs,
 } from "./schemas";
 
-/** The UI can display this when research returns no evidence due to configuration. */
-export const EXA_UNAVAILABLE_MESSAGE =
-  "No puedo investigar fuentes públicas porque EXA_API_KEY no está configurada. No agregué evidencia ni inferí datos de proveedores.";
-
 const SEARCH_TYPE = (process.env.EXA_SEARCH_TYPE ?? "fast") as
   "instant" | "fast" | "auto" | "deep-lite" | "deep" | "deep-reasoning";
+
+export function isExaConfigured(): boolean {
+  return Boolean(process.env.EXA_API_KEY);
+}
 
 function includesAny(text: string, terms: string[]) {
   const normalized = text.toLocaleLowerCase("es");

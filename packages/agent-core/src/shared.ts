@@ -15,6 +15,7 @@ export {
   searchWebParameters,
   type SearchWebArgs,
   type SearchHit,
+  EXA_UNAVAILABLE_MESSAGE,
   criterionSchema,
   evidenceSchema,
   alternativeSchema,

@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
+import { Exa } from "exa-js";
 import {
   detectGaps,
-  EXA_UNAVAILABLE_MESSAGE,
   proposeDecision,
   researchAlternative,
 } from "./decision-desk";
+import {
+  decisionDeskTools,
+  detectGapsTool,
+  proposeDecisionTool,
+  researchAlternativeTool,
+} from "./decision-tools";
+import { EXA_UNAVAILABLE_MESSAGE, gapSchema, proposalSchema } from "./schemas";
 import type { Decision } from "./schemas";
 
 const decision: Decision = {
@@ -60,4 +67,63 @@ test("researchAlternative returns no invented evidence without EXA_API_KEY", asy
     alternativeId: "dlocal",
     query: "dLocal Paraguay Brasil costos y métodos locales",
   }), []);
+});
+
+test("research_alternative preserves an Exa result URL as Evidence[]", async () => {
+  const originalSearch = Exa.prototype.searchAndContents;
+  process.env.EXA_API_KEY = "test-key";
+  (Exa.prototype.searchAndContents as unknown as (query: string, options: unknown) => Promise<unknown>) = async () => ({
+    results: [{
+      id: "exa-result-dlocal",
+      title: "dLocal",
+      url: "https://www.dlocal.com/",
+      highlights: ["dLocal provides cross-border payment infrastructure."],
+    }],
+  });
+  try {
+    const evidence = await researchAlternative({
+      decision,
+      alternativeId: "dlocal",
+      criterionId: "coverage",
+      query: "dLocal Paraguay Brasil métodos de pago locales",
+    });
+    assert.deepEqual(evidence, [{
+      id: "exa-result-dlocal",
+      alternativeId: "dlocal",
+      criterionId: "coverage",
+      claim: "dLocal provides cross-border payment infrastructure.",
+      url: "https://www.dlocal.com/",
+      source: "dLocal",
+      addedBy: "agent",
+    }]);
+  } finally {
+    Exa.prototype.searchAndContents = originalSearch;
+  }
+});
+
+test("BuiltInAgent receives only the three read/prepare Decision Desk tools", async () => {
+  assert.deepEqual(decisionDeskTools.map((tool) => tool.name), [
+    "detect_gaps",
+    "research_alternative",
+    "propose_decision",
+  ]);
+  assert.equal(decisionDeskTools.some((tool) => /write|create|save|ambiguous/i.test(tool.name)), false);
+
+  const detect = detectGapsTool.execute;
+  const research = researchAlternativeTool.execute;
+  const propose = proposeDecisionTool.execute;
+  if (!detect || !research || !propose) {
+    throw new Error("Decision Desk tools must have server-side executors.");
+  }
+  assert.equal(gapSchema.array().parse(await detect(decision)).length, 3);
+  await assert.rejects(
+    () => research({
+      decision,
+      alternativeId: "dlocal",
+      query: "dLocal Paraguay Brasil",
+      results: 5,
+    }),
+    new RegExp(EXA_UNAVAILABLE_MESSAGE),
+  );
+  assert.equal(proposalSchema.parse(await propose({ decision })).decisionId, decision.id);
 });

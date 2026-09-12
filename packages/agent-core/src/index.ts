@@ -11,8 +11,10 @@ export {
   detectGaps,
   researchAlternative,
   proposeDecision,
-  EXA_UNAVAILABLE_MESSAGE,
+  isExaConfigured,
 } from "./decision-desk";
+export { decisionDeskTools } from "./decision-tools";
+export { EXA_UNAVAILABLE_MESSAGE } from "./schemas";
 export {
   workplaceMcpServers,
   isWorkplaceConfigured,

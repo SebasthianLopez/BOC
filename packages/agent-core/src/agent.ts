@@ -1,7 +1,7 @@
 import { BuiltInAgent } from "@copilotkit/runtime/v2";
 import { resolveModel } from "./model";
 import { SYSTEM_PROMPT } from "./prompt";
-import { workplaceMcpServers } from "./capabilities/workplace";
+import { decisionDeskTools } from "./decision-tools";
 
 /**
  * The agent factory.
@@ -19,9 +19,9 @@ import { workplaceMcpServers } from "./capabilities/workplace";
  * Nothing else in the kit changes. That is the point of AG-UI.
  */
 export type AgentFactoryOptions = {
-  /** Disable workplace MCP for surfaces that should only see local app tools. */
+  /** Retained for caller compatibility; Decision Desk never exposes workplace MCP. */
   workplace?: boolean;
-  /** Override the default incident prompt for a surface-specific starter. */
+  /** Override the Decision Desk prompt for a surface-specific presentation. */
   prompt?: string;
 };
 
@@ -35,11 +35,9 @@ export function makeAgent(threadId: string, options: AgentFactoryOptions = {}) {
     // agent with tools needs room to loop.
     maxSteps: 10,
 
-    // The workplace, when one is configured. Empty array when it is not, so the
-    // agent is never handed tools that would 401. Add your own MCP servers here
-    // the same way — note HTTP transport takes `options` (with a wrapped
-    // `options.fetch` for auth), not `headers`.
-    mcpServers: options.workplace === false ? [] : [...workplaceMcpServers()],
+    // No MCP/Ambiguous write tool is ever attached to the Decision Desk agent.
+    tools: decisionDeskTools,
+    mcpServers: [],
   });
   agent.threadId = threadId;
   return agent;
