@@ -7,6 +7,7 @@ import {
 import { AppControl } from "@/components/app-control";
 import { GenerativeUI } from "@/components/generative-ui";
 import { DecisionDesk } from "@/components/decision-desk/decision-desk";
+import styles from "@/components/decision-desk/decision-desk.module.css";
 import { useDecisionWorkplace } from "@/lib/use-decision-workplace";
 
 export default function Home() {
@@ -16,7 +17,7 @@ export default function Home() {
     {
       suggestions: [
         {
-          title: "Que falta para decidir",
+          title: "Qué falta para decidir",
           message:
             "Leé la decisión de la página y decime qué falta: qué alternativa y criterio siguen sin evidencia, y qué compromiso no tiene responsable.",
         },
@@ -37,47 +38,52 @@ export default function Home() {
   );
 
   return (
-    <>
+    /*
+     * El shell fija la paleta oficial y remapea los tokens del starter, así que
+     * todo lo que queda adentro se reskinea sin tocar globals.css.
+     */
+    <div className={styles.shell}>
       <GenerativeUI />
       <AppControl workplace={workplace} />
       <main className="ck-workspace">
+        {/* Encabezado compacto: esto es una mesa de trabajo, no una portada. */}
         <header className="ck-workspace-header">
           <div>
             <p className="ck-eyebrow">Breakfast of Champions · Decision Desk</p>
-            <h1>Decision Desk</h1>
-            <p className="ck-intro">
-              Una decisión compartida, la evidencia que la sostiene y los
-              compromisos que genera. El asistente lee esta página; no decide
-              por el equipo.
-            </p>
+            <h1>Decisión del equipo</h1>
           </div>
           <span className="ck-tag">Caso de demo</span>
         </header>
 
-        <div className="ck-workspace-grid">
-          <DecisionDesk workplace={workplace} />
+        <div className={styles.grid}>
+          <div className={styles.deskColumn}>
+            <DecisionDesk workplace={workplace} />
+          </div>
 
-          <section
-            className="ck-panel ck-assistant"
-            aria-labelledby="assistant-title"
-          >
-            <header className="ck-assistant-header">
-              <h2 id="assistant-title">Preguntale al facilitador</h2>
-              <p>
-                Puede encontrar huecos, adjuntar evidencia investigada y dejar
-                compromisos listos para tu aprobación.
-              </p>
-            </header>
-            <CopilotChat
-              className="ck-chat"
-              labels={{
-                welcomeMessageText: "¿Qué está trabando esta decisión?",
-                chatInputPlaceholder: "Preguntá sobre esta decisión…",
-              }}
-            />
-          </section>
+          <div className={styles.chatColumn}>
+            <section
+              className="ck-panel ck-assistant"
+              aria-labelledby="assistant-title"
+            >
+              <header className="ck-assistant-header">
+                <h2 id="assistant-title">Facilitador</h2>
+                <p>
+                  Encuentra huecos, adjunta evidencia investigada y deja
+                  compromisos listos para tu aprobación. No puede crear nada por
+                  su cuenta.
+                </p>
+              </header>
+              <CopilotChat
+                className="ck-chat"
+                labels={{
+                  welcomeMessageText: "¿Qué está trabando esta decisión?",
+                  chatInputPlaceholder: "Preguntá sobre esta decisión…",
+                }}
+              />
+            </section>
+          </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }

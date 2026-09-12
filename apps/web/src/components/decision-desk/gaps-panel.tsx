@@ -22,7 +22,12 @@ function where(decision: Decision, gap: Gap) {
   return parts.length ? parts.join(" · ") : null;
 }
 
-/** `Gap[]` tal cual. La página no inventa huecos ni los deduce por su cuenta. */
+/**
+ * `Gap[]` tal cual. La página no inventa huecos ni los deduce por su cuenta.
+ *
+ * Banana Cream con texto Midnight Violet (13.89:1), el mismo color que llevan
+ * las celdas vacías de la matriz: lo pendiente se lee igual en los dos lados.
+ */
 export function GapsPanel({
   decision,
   gaps,
@@ -58,7 +63,7 @@ export function GapsPanel({
         </ul>
       ) : (
         <p className="ck-empty">
-          No hay huecos abiertos. Preguntale al asistente qué falta antes de
+          No hay huecos abiertos. Preguntale al facilitador qué falta antes de
           tomar esta decisión.
         </p>
       )}

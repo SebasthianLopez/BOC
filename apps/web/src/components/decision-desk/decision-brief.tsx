@@ -15,10 +15,11 @@ export interface DecisionBriefProps {
   readiness?: string;
 }
 
+/* Paleta oficial: Banana Cream marca lo pendiente, Dusty Grape lo accionable. */
 const readinessColor = {
-  blocked: "var(--accent)",
-  ready: "#2e7d5b",
-  forming: "var(--muted)",
+  blocked: "var(--dd-attention)",
+  ready: "var(--dd-primary)",
+  forming: "var(--dd-muted)",
 } as const;
 
 function isReadiness(value?: string): value is keyof typeof readinessColor {

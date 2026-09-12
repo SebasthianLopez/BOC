@@ -6,9 +6,12 @@ import type { CommitmentsStatus, Proposal } from "./contract";
 import styles from "./decision-desk.module.css";
 
 /**
- * La compuerta de aprobacion. Este control es lo unico en la pagina que puede
+ * La compuerta de aprobación. Este control es lo único en la página que puede
  * provocar una escritura, y muestra cada compromiso textual antes. Estar de
  * acuerdo en el chat no autoriza nada.
+ *
+ * Se lee pendiente, nunca ejecutada: filo Sandy Brown, chip "pendiente" y el
+ * texto de qué pasa al aprobar arriba de los botones.
  */
 export function ProposalApproval({
   proposal,
@@ -26,14 +29,14 @@ export function ProposalApproval({
 }) {
   return (
     <section className="ck-approval" aria-labelledby="proposal-title">
-      <h3 id="proposal-title">Propuesta esperando tu aprobación</h3>
+      <h3 id="proposal-title">
+        Propuesta del facilitador
+        <span className={styles.pendingBadge}>Pendiente de aprobación</span>
+      </h3>
+
       <p className={styles.recommendation}>{proposal.recommendation}</p>
       <p className={styles.rationale}>{proposal.rationale}</p>
 
-      <p className="ck-local-note">
-        Aprobar crea {proposal.commitments.length} compromiso(s) en Ambiguous,
-        exactamente como están escritos abajo. Rechazar no crea nada.
-      </p>
       <ul className={styles.commitmentList}>
         {proposal.commitments.map((commitment, index) => (
           <li
@@ -49,6 +52,11 @@ export function ProposalApproval({
         ))}
       </ul>
 
+      <p className="ck-local-note">
+        Aprobar crea {proposal.commitments.length} compromiso(s) en Ambiguous,
+        exactamente como están escritos arriba. Rechazar no crea nada.
+      </p>
+
       {error ? (
         <p role="alert" className="ck-error">
           {error} Mientras tanto, aprobar no puede crear nada.
@@ -62,7 +70,7 @@ export function ProposalApproval({
           disabled={busy || !!error}
           onClick={onApprove}
         >
-          {busy ? "Trabajando…" : "Aprobar y crear compromisos"}
+          {busy ? "Creando…" : "Aprobar y crear"}
         </button>
         <button
           type="button"
@@ -78,14 +86,14 @@ export function ProposalApproval({
 }
 
 /**
- * Compromisos releidos desde Ambiguous. Los IDs y enlaces se muestran solo si
- * el proveedor los devolvio; el caso sin configurar lo dice sin rodeos.
+ * Compromisos releídos desde Ambiguous. Los IDs y enlaces se muestran solo si
+ * el proveedor los devolvió; el caso sin configurar lo dice sin rodeos.
  */
 export function CommitmentsPanel({ status }: { status?: CommitmentsStatus }) {
   return (
     <section className={styles.section} aria-labelledby="commitments-title">
       <div className={styles.sectionHeader}>
-        <h3 id="commitments-title">Compromisos</h3>
+        <h3 id="commitments-title">Compromisos creados</h3>
         <span className="ck-tag">Ambiguous</span>
       </div>
 
@@ -110,17 +118,21 @@ export function CommitmentsPanel({ status }: { status?: CommitmentsStatus }) {
                   <span>Responsable: {commitment.owner}</span>
                   <span>Fecha: {commitment.dueDate}</span>
                   <code className="ck-record-id">{commitment.ambiguousId}</code>
+                  {commitment.url ? (
+                    <a
+                      className={styles.commitmentLink}
+                      href={commitment.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Abrir en Ambiguous
+                    </a>
+                  ) : (
+                    <span className="ck-muted">
+                      Sin enlace: usá este ID en el espacio de trabajo.
+                    </span>
+                  )}
                 </span>
-                {commitment.url ? (
-                  <a href={commitment.url} target="_blank" rel="noreferrer">
-                    Abrir el registro en Ambiguous
-                  </a>
-                ) : (
-                  <span className="ck-muted">
-                    Ambiguous no devolvió enlace. Usá este ID en el espacio de
-                    trabajo.
-                  </span>
-                )}
               </li>
             ))}
           </ul>

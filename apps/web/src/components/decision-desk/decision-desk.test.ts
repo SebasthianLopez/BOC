@@ -143,7 +143,7 @@ test("el card de chat tolera arreglos parciales y muestra el color de estado", (
     }),
   );
   assert.match(html, /Pasarela de pagos/);
-  assert.match(html, /var\(--accent\)/);
+  assert.match(html, /var\(--dd-attention\)/);
   assert.match(html, /Sin evidencia de costo para dLocal/);
   assert.match(html, /Cargando/);
 });

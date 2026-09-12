@@ -1,15 +1,208 @@
 /*
- * Decision Desk styles.
+ * Decision Desk — implementación de FRONTEND_STYLE.md.
  *
- * P1 cannot edit `app/globals.css` (outside this lane), so anything the desk
- * adds lives here as a CSS Module. Shared `ck-*` classes from globals.css are
- * reused wherever they already fit; these rules only cover what is new, and
- * they follow the same tokens: 1px var(--border), 12px muted labels, 8/16px radii.
+ * P1 no puede editar `app/globals.css`, que es donde viven `body`, los tokens
+ * del starter y todas las clases `ck-*`. En vez de duplicar ese CSS, `.shell`
+ * remapea los tokens del starter a la paleta oficial: cualquier clase `ck-*`
+ * que quede dentro del shell adopta la paleta sola. Los ajustes puntuales van
+ * con `:global()`, que en un CSS Module deja el nombre de clase sin hashear.
+ *
+ * Diales del brief: DESIGN_VARIANCE 4 · MOTION_INTENSITY 2 · VISUAL_DENSITY 7.
+ *
+ * Escala de radios (regla única, documentada):
+ *   superficies 12px · controles 8px · píldoras 999px.
  */
 
+.shell {
+  /* Paleta obligatoria. Ningún otro color de marca entra acá. */
+  --dd-canvas: #fffded;
+  --dd-ink: #201335;
+  --dd-primary: #4f4789;
+  --dd-attention: #fce762;
+  --dd-evidence: #ffb17a;
+
+  /* Derivados: solo mezclas de los cinco anteriores. */
+  --dd-line: color-mix(in srgb, var(--dd-ink) 16%, transparent);
+  --dd-line-strong: color-mix(in srgb, var(--dd-ink) 32%, transparent);
+  --dd-muted: color-mix(in srgb, var(--dd-ink) 68%, transparent);
+  --dd-attention-wash: color-mix(in srgb, var(--dd-attention) 38%, var(--dd-canvas));
+  --dd-attention-block: color-mix(in srgb, var(--dd-attention) 70%, var(--dd-canvas));
+  --dd-evidence-wash: color-mix(in srgb, var(--dd-evidence) 24%, var(--dd-canvas));
+  --dd-primary-wash: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-canvas));
+
+  --dd-radius-surface: 12px;
+  --dd-radius-control: 8px;
+
+  /* MOTION_INTENSITY 2: transiciones cortas, solo para feedback y cambio de estado. */
+  --dd-dur: 180ms;
+  --dd-dur-enter: 260ms;
+  --dd-ease: cubic-bezier(0.2, 0, 0, 1);
+  --dd-stagger: 40ms;
+
+  /*
+   * Remapeo de los tokens del starter. Esto reskinnea `ck-panel`, `ck-btn`,
+   * el anillo de foco y el resto sin tocar globals.css.
+   */
+  --ground: var(--dd-canvas);
+  --surface: var(--dd-canvas);
+  --border: var(--dd-line);
+  --text: var(--dd-ink);
+  --muted: var(--dd-muted);
+  --accent: var(--dd-primary);
+
+  /* body sigue pintado de gris por globals.css; el shell lo tapa. */
+  min-height: 100dvh;
+  background: var(--dd-canvas);
+  color: var(--dd-ink);
+}
+
+/* Estructura --------------------------------------------------------------- */
+
+.shell :global(.ck-workspace) {
+  max-width: 1200px;
+  padding: 32px;
+}
+
+/* Encabezado compacto: herramienta de trabajo, no hero de marketing. */
+.shell :global(.ck-workspace-header) {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--dd-line);
+}
+
+.shell :global(.ck-workspace-header) h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.shell :global(.ck-eyebrow) {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dd-muted);
+  margin-bottom: 6px;
+}
+
+/* Grilla de 12 columnas: la decisión pesa 8, el asistente 4. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.deskColumn {
+  grid-column: span 8;
+  min-width: 0;
+}
+
+.chatColumn {
+  grid-column: span 4;
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .deskColumn,
+  .chatColumn {
+    grid-column: 1 / -1;
+  }
+  /* En móvil el asistente va último y no se pega: no puede tapar la aprobación. */
+  .chatColumn {
+    position: static;
+  }
+  .shell :global(.ck-workspace) {
+    padding: 24px 16px;
+  }
+}
+
+/* Superficies: un solo borde, sin tarjetas dentro de tarjetas. */
+.shell :global(.ck-panel) {
+  background: var(--dd-canvas);
+  border: 1px solid var(--dd-line);
+  border-radius: var(--dd-radius-surface);
+  padding: 24px;
+}
+
+.shell :global(.ck-assistant) {
+  padding: 0;
+}
+
+.shell :global(.ck-tag) {
+  border-color: var(--dd-line-strong);
+  color: var(--dd-muted);
+  border-radius: 999px;
+}
+
+/* Controles ---------------------------------------------------------------- */
+
+.shell :global(.ck-btn) {
+  border-radius: var(--dd-radius-control);
+  border: 1px solid var(--dd-line-strong);
+  background: var(--dd-canvas);
+  color: var(--dd-ink);
+  padding: 0.5rem 0.9rem;
+  font-weight: 500;
+  transition:
+    background-color var(--dd-dur) var(--dd-ease),
+    transform var(--dd-dur) var(--dd-ease);
+}
+
+.shell :global(.ck-btn):hover:not(:disabled) {
+  background: var(--dd-primary-wash);
+}
+
+/* Feedback táctil al presionar. */
+.shell :global(.ck-btn):active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.shell :global(.ck-btn):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dusty Grape es el único fondo del CTA primario. Ivory sobre él: 7.91:1. */
+.shell :global(.ck-btn--primary) {
+  background: var(--dd-primary);
+  border-color: var(--dd-primary);
+  color: var(--dd-canvas);
+}
+
+.shell :global(.ck-btn--primary):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dd-primary) 88%, var(--dd-ink));
+}
+
+.shell :global(.ck-workspace) code,
+.shell :global(.ck-record-id) {
+  font-variant-numeric: tabular-nums;
+  color: var(--dd-muted);
+}
+
+/*
+ * globals.css da foco visible a button, input, select y summary. Faltan los
+ * enlaces y el textarea del chat, que el brief pide explícitamente.
+ */
+.shell a:focus-visible,
+.shell textarea:focus-visible,
+.shell [contenteditable]:focus-visible {
+  outline: 2px solid var(--dd-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Secciones ---------------------------------------------------------------- */
+
 .section {
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--dd-line);
 }
 
 .sectionHeader {
@@ -17,28 +210,68 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .sectionHeader h3 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .hint {
   font-size: 12px;
-  color: var(--muted);
-  margin: 0 0 16px;
+  color: var(--dd-muted);
+  margin: 0 0 14px;
+  max-width: 62ch;
 }
 
 .count {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dd-muted);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-/* Alternatives x criteria ------------------------------------------------ */
+/* Cabecera de la decisión: título y contexto antes que los metadatos. */
+.decisionTitle {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.decisionContext {
+  color: var(--dd-ink);
+  margin: 0 0 12px;
+  max-width: 68ch;
+}
+
+.decisionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: var(--dd-muted);
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 4px;
+}
+
+.decisionMeta code {
+  font-size: 11px;
+}
+
+.statusOpen {
+  color: var(--dd-ink);
+  background: var(--dd-attention-block);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-weight: 600;
+}
+
+/* Matriz ------------------------------------------------------------------- */
 
 .matrixWrap {
   overflow-x: auto;
@@ -52,52 +285,63 @@
 
 .matrix th,
 .matrix td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--dd-line);
   padding: 10px;
   text-align: left;
   vertical-align: top;
 }
 
 .matrix thead th {
-  background: #f7f7f9;
+  background: var(--dd-primary-wash);
+  color: var(--dd-ink);
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
+  min-width: 130px;
 }
 
 .weight {
   display: block;
   font-weight: 400;
-  color: var(--muted);
+  color: var(--dd-muted);
   font-size: 10px;
-  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  margin-top: 3px;
 }
 
 .altCell {
   min-width: 180px;
+  background: var(--dd-canvas);
 }
 
 .altCell strong {
   display: block;
+  font-size: 13px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .altCell p {
   margin: 0;
-  color: var(--muted);
+  color: var(--dd-muted);
 }
 
 .cell {
   min-width: 150px;
+  transition: background-color var(--dd-dur-enter) var(--dd-ease);
 }
 
+/*
+ * Una celda sin evidencia es el argumento del producto, no un campo
+ * deshabilitado: lleva Banana Cream, el mismo color del panel de huecos, y
+ * texto Midnight Violet legible (13.89:1).
+ */
 .cellEmpty {
-  background: #fdfbf6;
+  background: var(--dd-attention-wash);
 }
 
 .missing {
-  color: var(--muted);
-  font-style: italic;
+  color: var(--dd-ink);
+  font-weight: 500;
 }
 
 .evidenceList {
@@ -111,53 +355,63 @@
 .evidenceList li {
   display: grid;
   gap: 2px;
+  border-left: 3px solid var(--dd-evidence);
+  padding-left: 8px;
 }
 
 .evidenceList a {
-  color: var(--text);
+  color: var(--dd-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   word-break: break-word;
 }
 
 .source {
-  color: var(--muted);
+  color: var(--dd-muted);
   font-size: 10px;
 }
 
 .addedBy {
   display: inline-block;
-  border: 1px solid var(--border);
+  background: var(--dd-evidence-wash);
   border-radius: 999px;
   padding: 0 6px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--dd-ink);
   margin-left: 6px;
 }
 
-/* Gaps ------------------------------------------------------------------- */
+/* Huecos ------------------------------------------------------------------- */
 
+/* Un bloque con filas divididas, no siete tarjetas sueltas. */
 .gapList {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 8px;
+  background: var(--dd-attention-block);
+  border-radius: var(--dd-radius-surface);
+  overflow: hidden;
 }
 
 .gapList li {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   font-size: 12px;
+  color: var(--dd-ink);
+  border-top: 1px solid color-mix(in srgb, var(--dd-ink) 12%, transparent);
+}
+
+.gapList li:first-child {
+  border-top: 0;
 }
 
 .gapKind {
-  color: var(--muted);
+  color: var(--dd-ink);
   font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding-top: 2px;
@@ -165,26 +419,71 @@
 
 .gapWhere {
   display: block;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--dd-ink) 72%, transparent);
   font-size: 10px;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
-/* Proposal and commitments ---------------------------------------------- */
+/* Propuesta y compromisos --------------------------------------------------- */
+
+/*
+ * La propuesta se lee pendiente de aprobación: banda con filo Sandy Brown
+ * dentro del panel, no otra tarjeta redondeada encima de la tarjeta.
+ */
+.shell :global(.ck-approval) {
+  background: var(--dd-evidence-wash);
+  border: 1px solid var(--dd-line);
+  border-left: 4px solid var(--dd-evidence);
+  border-radius: var(--dd-radius-surface);
+  padding: 18px;
+  margin: 0;
+}
+
+.shell :global(.ck-approval) h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.pendingBadge {
+  display: inline-block;
+  background: var(--dd-attention-block);
+  color: var(--dd-ink);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.recommendation {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 8px;
+  max-width: 60ch;
+}
+
+.rationale {
+  color: var(--dd-muted);
+  font-size: 12px;
+  margin: 0 0 14px;
+  white-space: pre-line;
+  max-width: 62ch;
+}
 
 .commitmentList {
   list-style: none;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   padding: 0;
-  display: grid;
-  gap: 8px;
+  border-top: 1px solid var(--dd-line);
 }
 
 .commitmentList li {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  padding: 10px 0;
   font-size: 12px;
+  border-bottom: 1px solid var(--dd-line);
 }
 
 .commitmentList strong {
@@ -194,32 +493,52 @@
 }
 
 .commitmentMeta {
-  color: var(--muted);
+  color: var(--dd-muted);
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 6px 14px;
+  font-variant-numeric: tabular-nums;
+  align-items: center;
 }
 
-.rationale {
-  color: var(--muted);
+.commitmentLink {
+  color: var(--dd-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   font-size: 12px;
-  margin: 0 0 16px;
-  white-space: pre-line;
-}
-
-.recommendation {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 8px;
 }
 
 .notConnected {
-  border: 1px dashed var(--border);
-  border-radius: 8px;
+  border: 1px dashed var(--dd-line-strong);
+  border-radius: var(--dd-radius-control);
   padding: 12px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dd-ink);
   margin: 0;
+  max-width: 70ch;
+}
+
+/*
+ * Error dentro de paleta: Sandy Brown queda reservado a evidencia y propuesta,
+ * Banana Cream a lo pendiente. Un filo Midnight Violet no compite con ninguno.
+ */
+.shell :global(.ck-error) {
+  background: var(--dd-primary-wash);
+  color: var(--dd-ink);
+  border-left: 4px solid var(--dd-primary);
+  border-radius: var(--dd-radius-control);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  max-width: 70ch;
+}
+
+.shell :global(.ck-notice),
+.shell :global(.ck-local-note),
+.shell :global(.ck-empty) {
+  color: var(--dd-muted);
+  font-size: 12px;
+  max-width: 70ch;
 }
 
 .notes {
@@ -229,35 +548,25 @@
   display: grid;
   gap: 6px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dd-muted);
+  max-width: 68ch;
 }
 
 .notes li::before {
   content: "— ";
 }
 
-/* Motion ----------------------------------------------------------------- */
+/* Movimiento ---------------------------------------------------------------- */
 
 /*
- * Restrained, Linear-style motion. Three jobs only: confirm that something
- * landed, guide the eye to what changed, and give the approval gate enough
- * weight that it does not slip past. Transform and opacity only, so nothing
- * here triggers layout. Everything is off under prefers-reduced-motion.
+ * Solo cuatro momentos, los que permite el brief: llegó evidencia, cambió un
+ * hueco, apareció la propuesta y el botón responde al toque (arriba, en .ck-btn).
  */
 
-.section {
-  /* Motion tokens, scoped to the desk so globals.css stays untouched. */
-  --dur-ui: 240ms;
-  --dur-enter: 420ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --stagger: 60ms;
-  --rise: 10px;
-}
-
-@keyframes deskRise {
+@keyframes ddRise {
   from {
     opacity: 0;
-    transform: translateY(var(--rise, 10px));
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -265,61 +574,31 @@
   }
 }
 
-@keyframes deskSettle {
-  from {
-    opacity: 0;
-    transform: scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * The moment the desk is built around: a cell that had no evidence gets some.
- * The class flips from .cellEmpty to plain .cell, so a transition on the
- * background is the whole effect — no JS, no re-mount needed.
- */
-.cell {
-  transition: background-color var(--dur-enter, 420ms) var(--ease-out, ease-out);
-}
-
-/* New evidence mounts on its own, so only the new row animates. */
-.evidenceList li {
-  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
-  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
-}
-
-/* Gaps arrive as a set: stagger gives them a reading order. */
-.gapList li {
-  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
-  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
-}
-
+.evidenceList li,
+.gapList li,
 .commitmentList li {
-  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
-  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
+  animation: ddRise var(--dd-dur-enter) var(--dd-ease) both;
+  animation-delay: calc(var(--i, 0) * var(--dd-stagger));
 }
 
-/* The approval gate is consequential, so it settles in rather than popping. */
 .approvalEnter {
-  animation: deskSettle var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
-}
-
-.notConnected {
-  animation: deskRise var(--dur-ui, 240ms) var(--ease-out, ease-out) both;
+  animation: ddRise var(--dd-dur-enter) var(--dd-ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .evidenceList li,
   .gapList li,
   .commitmentList li,
-  .approvalEnter,
-  .notConnected {
+  .approvalEnter {
     animation: none;
   }
   .cell {
     transition: none;
+  }
+  .shell :global(.ck-btn) {
+    transition: none;
+  }
+  .shell :global(.ck-btn):active:not(:disabled) {
+    transform: none;
   }
 }

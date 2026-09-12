@@ -30,8 +30,11 @@ function generalEvidence(alternative: Alternative) {
 }
 
 /**
- * Alternativas x criterios. Una celda vacia es el punto del escritorio: es la
- * forma visible de un hueco, asi que dice que falta en vez de quedar en blanco.
+ * Alternativas × criterios.
+ *
+ * Una celda vacía es el punto del escritorio, no un campo deshabilitado: lleva
+ * Banana Cream y dice qué falta con texto legible. Las ocho celdas vacías del
+ * caso oficial son, literalmente, el argumento de la demo.
  */
 export function DecisionMatrix({ decision }: { decision: Decision }) {
   return (
@@ -46,7 +49,7 @@ export function DecisionMatrix({ decision }: { decision: Decision }) {
       <p className={styles.hint}>
         Cada celda guarda la evidencia de esa alternativa frente a ese criterio.
         Los enlaces vienen de una búsqueda real, nunca de la memoria del
-        asistente.
+        facilitador.
       </p>
 
       <div className={styles.matrixWrap}>
@@ -92,7 +95,7 @@ export function DecisionMatrix({ decision }: { decision: Decision }) {
                         {items.length ? (
                           <EvidenceItems items={items} />
                         ) : (
-                          <span className={styles.missing}>Sin evidencia</span>
+                          <span className={styles.missing}>Falta evidencia</span>
                         )}
                       </td>
                     );
