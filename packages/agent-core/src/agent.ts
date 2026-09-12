@@ -25,20 +25,29 @@ export type AgentFactoryOptions = {
   prompt?: string;
 };
 
-export function makeAgent(threadId: string, options: AgentFactoryOptions = {}) {
-  const agent = new BuiltInAgent({
-    model: resolveModel(),
-    prompt: options.prompt ?? SYSTEM_PROMPT,
+/** The verifiable BuiltInAgent configuration for the Decision Desk runtime. */
+export function decisionDeskAgentConfig(
+  model: ReturnType<typeof resolveModel>,
+  prompt = SYSTEM_PROMPT,
+) {
+  return {
+    model,
+    prompt,
 
-    // NOT optional in practice. maxSteps defaults to 1, which means the agent
-    // can call one tool and then stops — before it ever sees the result. Any
-    // agent with tools needs room to loop.
+    // maxSteps defaults to 1, which would stop after the server half of a
+    // P2→P1 chain before the model can call the visual P1 tool.
     maxSteps: 10,
 
     // No MCP/Ambiguous write tool is ever attached to the Decision Desk agent.
     tools: decisionDeskTools,
     mcpServers: [],
-  });
+  };
+}
+
+export function makeAgent(threadId: string, options: AgentFactoryOptions = {}) {
+  const agent = new BuiltInAgent(
+    decisionDeskAgentConfig(resolveModel(), options.prompt ?? SYSTEM_PROMPT),
+  );
   agent.threadId = threadId;
   return agent;
 }

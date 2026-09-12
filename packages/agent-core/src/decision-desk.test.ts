@@ -13,6 +13,7 @@ import {
   researchAlternativeTool,
 } from "./decision-tools";
 import { EXA_UNAVAILABLE_MESSAGE, gapSchema, proposalSchema } from "./schemas";
+import { decisionDeskAgentConfig } from "./agent";
 import type { Decision } from "./schemas";
 
 const decision: Decision = {
@@ -126,4 +127,15 @@ test("BuiltInAgent receives only the three read/prepare Decision Desk tools", as
     new RegExp(EXA_UNAVAILABLE_MESSAGE),
   );
   assert.equal(proposalSchema.parse(await propose({ decision })).decisionId, decision.id);
+});
+
+test("runtime configuration registers P2 tools and no MCP/write surface", () => {
+  const config = decisionDeskAgentConfig("openai:gpt-test");
+  assert.deepEqual(config.tools.map((tool) => tool.name), [
+    "detect_gaps",
+    "research_alternative",
+    "propose_decision",
+  ]);
+  assert.deepEqual(config.mcpServers, []);
+  assert.equal(config.maxSteps, 10);
 });
