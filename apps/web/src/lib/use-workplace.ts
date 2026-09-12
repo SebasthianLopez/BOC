@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
-  Proposal,
+  LegacyProposal as Proposal,
   WorkplaceStatus,
   WorkplaceTask,
 } from "./followup-types";

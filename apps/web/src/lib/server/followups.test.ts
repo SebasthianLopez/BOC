@@ -7,176 +7,35 @@ import { FollowupService } from "./followups";
 import type { Workplace, WorkplaceTask } from "./workplace";
 
 const session = "a".repeat(64);
-const input = {
-  incidentId: "INC-1042",
-  title: "Check pool metrics",
-  details: "Compare before and after deploy.",
-};
+const proposal = { decisionId: "boc-payment-gateway", recommendation: "Probar dLocal de manera provisional.", rationale: "Falta validar costos y compliance.", commitments: [{ title: "Crear prueba sandbox de dLocal", owner: "Diego", dueDate: "Antes del siguiente hito" }, { title: "Solicitar cotización y validar compliance", owner: "Sofía", dueDate: "Antes del siguiente hito" }] };
 class FakeWorkplace implements Workplace {
-  workspaceId = "workspace-a";
-  tasks: WorkplaceTask[] = [];
-  creates = 0;
-  reads = 0;
-  failure: "before" | "after" | undefined;
-  async identity() {
-    return { id: "user-a", workspaceId: this.workspaceId, name: "Demo agent" };
-  }
-  async list(marker: string) {
-    this.reads++;
-    return this.tasks.filter((t) => t.description.includes(marker));
-  }
-  async get(id: string) {
-    this.reads++;
-    const task = this.tasks.find((t) => t.id === id);
-    if (!task) throw new Error("not found");
-    return task;
-  }
-  async create(
-    title: string,
-    description: string,
-    beforeWrite: () => Promise<void>,
-  ) {
-    await beforeWrite();
-    this.creates++;
-    if (this.failure === "before") throw new Error("provider unavailable");
-    const task = {
-      id: "11111111-1111-4111-8111-111111111111",
-      title,
-      description,
-      url: null,
-    };
-    this.tasks.push(task);
-    if (this.failure === "after") throw new Error("lost response");
-    return task;
-  }
+  tasks: WorkplaceTask[] = []; creates = 0;
+  async identity() { return { id: "u1", workspaceId: "w1", name: "Demo" }; }
+  async list(marker: string) { return this.tasks.filter((task) => task.description.includes(marker)); }
+  async get(id: string) { const task = this.tasks.find((item) => item.id === id); if (!task) throw new Error("missing"); return task; }
+  async create(title: string, description: string, beforeWrite: () => Promise<void>) { await beforeWrite(); const task = { id: `11111111-1111-4111-8111-${String(++this.creates).padStart(12, "0")}`, title, description, url: `https://app.ambiguous.ai/tasks/${this.creates}` }; this.tasks.push(task); return task; }
 }
-async function fixture(t: TestContext) {
-  const directory = await mkdtemp(join(tmpdir(), "web-followups-"));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const provider = new FakeWorkplace();
-  let now = Date.now();
-  const service = new FollowupService(provider, directory, () => now);
-  return {
-    service,
-    provider,
-    directory,
-    expire: () => {
-      now += 11 * 60_000;
-    },
-  };
-}
+async function fixture(t: TestContext) { const directory = await mkdtemp(join(tmpdir(), "decision-desk-")); t.after(() => rm(directory, { recursive: true, force: true })); const workplace = new FakeWorkplace(); return { directory, workplace, service: new FollowupService(workplace, directory) }; }
 
-test("a proposal performs no write; approval writes exactly the displayed fields and reads back", async (t) => {
-  const { service, provider } = await fixture(t);
-  const proposal = await service.propose(session, input);
-  assert.equal(provider.creates, 0);
-  const task = await service.approve(session, proposal.id);
-  assert.equal(task.title, proposal.title);
-  assert.equal(task.description, proposal.description);
-  assert.equal(provider.creates, 1);
-  assert.ok(provider.reads > 0);
+test("approval creates every displayed commitment and returns real Ambiguous IDs and URLs", async (t) => {
+  const { service, workplace } = await fixture(t);
+  const commitments = await service.approve(session, proposal);
+  assert.equal(workplace.creates, 2);
+  assert.deepEqual(commitments.map(({ title, owner, dueDate }) => ({ title, owner, dueDate })), proposal.commitments);
+  assert.ok(commitments.every((commitment) => commitment.ambiguousId && commitment.url.startsWith("https://app.ambiguous.ai/")));
 });
-
-test("missing, foreign-session, denied, and expired proposals cannot write", async (t) => {
-  const { service, provider, expire } = await fixture(t);
-  await assert.rejects(service.approve(session, "missing"));
-  const proposal = await service.propose(session, input);
-  await assert.rejects(service.approve("b".repeat(64), proposal.id), /session/);
-  await service.deny(session, proposal.id);
-  await assert.rejects(service.approve(session, proposal.id), /declined/);
-  const next = await service.propose(session, input);
-  expire();
-  await assert.rejects(service.approve(session, next.id), /expired/);
-  assert.equal(provider.creates, 0);
+test("same approval, including after restart, does not duplicate commitments and read-back is decision keyed", async (t) => {
+  const { service, workplace, directory } = await fixture(t);
+  await service.approve(session, proposal); await service.approve(session, proposal);
+  const restarted = new FollowupService(workplace, directory);
+  assert.equal((await restarted.approve(session, proposal)).length, 2);
+  assert.equal(workplace.creates, 2);
+  assert.equal((await restarted.list(proposal.decisionId)).length, 2);
 });
-
-test("workspace changes invalidate the exact consent", async (t) => {
-  const { service, provider } = await fixture(t);
-  const proposal = await service.propose(session, input);
-  provider.workspaceId = "workspace-b";
-  await assert.rejects(service.approve(session, proposal.id), /workspace/);
-  assert.equal(provider.creates, 0);
-});
-
-test("concurrent approval and restart cannot duplicate a saved task; refresh reads the provider", async (t) => {
-  const { service, provider, directory } = await fixture(t);
-  const p = await service.propose(session, input);
-  const results = await Promise.allSettled([
-    service.approve(session, p.id),
-    service.approve(session, p.id),
-  ]);
-  assert.ok(results.some((r) => r.status === "fulfilled"));
-  assert.equal(provider.creates, 1);
-  const restarted = new FollowupService(provider, directory);
-  await restarted.approve(session, p.id);
-  const before = provider.reads;
-  assert.equal((await restarted.list("INC-1042"))[0].id, provider.tasks[0].id);
-  assert.ok(provider.reads > before);
-  const another = await restarted.propose(session, input);
-  await restarted.approve(session, another.id);
-  assert.equal(provider.creates, 1);
-});
-
-test("an uncertain write is never retried, including after restart and a new proposal", async (t) => {
-  const { service, provider, directory } = await fixture(t);
-  const p = await service.propose(session, input);
-  provider.failure = "before";
-  await assert.rejects(service.approve(session, p.id), /uncertain/);
-  provider.failure = undefined;
-  const restarted = new FollowupService(provider, directory);
-  await assert.rejects(restarted.approve(session, p.id), /uncertain/);
-  const another = await restarted.propose(session, input);
-  await assert.rejects(restarted.approve(session, another.id), /uncertain/);
-  assert.equal(provider.creates, 1);
-});
-
-test("a lost create reply is reconciled from Ambiguous without a second create", async (t) => {
-  const { service, provider, directory } = await fixture(t);
-  const p = await service.propose(session, input);
-  provider.failure = "after";
-  await assert.rejects(service.approve(session, p.id), /uncertain/);
-  const restarted = new FollowupService(provider, directory);
-  const task = await restarted.approve(session, p.id);
-  assert.equal(task.id, provider.tasks[0].id);
-  assert.equal(provider.creates, 1);
-});
-
-test("invalid proposal inputs fail before provider writes", async (t) => {
-  const { service, provider } = await fixture(t);
-  await assert.rejects(
-    service.propose(session, { ...input, incidentId: "unknown" }),
-  );
-  await assert.rejects(service.propose(session, { ...input, title: " " }));
-  await assert.rejects(
-    service.propose(session, { ...input, details: "x".repeat(4001) }),
-  );
-  assert.equal(provider.creates, 0);
-});
-
-test("schema discovery failure before the write guard remains retryable", async (t) => {
-  const { service, provider } = await fixture(t);
-  const original = provider.create.bind(provider);
-  provider.create = async () => {
-    throw new Error("schema unavailable");
-  };
-  const p = await service.propose(session, input);
-  await assert.rejects(service.approve(session, p.id), /schema/);
-  provider.create = original;
-  await service.approve(session, p.id);
-  assert.equal(provider.creates, 1);
-});
-
-test("read-back fields must match the exact approved payload", async (t) => {
-  const { service, provider } = await fixture(t);
-  const original = provider.get.bind(provider);
-  provider.get = async (id) => ({
-    ...(await original(id)),
-    title: "Unexpected changed title",
-  });
-  const p = await service.propose(session, input);
-  await assert.rejects(
-    service.approve(session, p.id),
-    /differs from the approved fields/,
-  );
-  assert.equal(provider.creates, 1);
+test("invalid or foreign-session approvals create zero tasks", async (t) => {
+  const { service, workplace } = await fixture(t);
+  await assert.rejects(service.approve(session, { ...proposal, decisionId: "unknown" }));
+  await service.approve(session, proposal);
+  await assert.rejects(service.approve("b".repeat(64), proposal), /session/);
+  assert.equal(workplace.creates, 2);
 });

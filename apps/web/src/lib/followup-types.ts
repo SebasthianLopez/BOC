@@ -4,7 +4,7 @@ export type WorkplaceTask = {
   description: string;
   url: string | null;
 };
-export type Proposal = {
+export type LegacyProposal = {
   id: string;
   incidentId: string;
   title: string;
@@ -12,6 +12,14 @@ export type Proposal = {
   workspaceId: string;
   identityName: string;
   expiresAt: number;
+};
+export type { Proposal } from "./decisions";
+export type Commitment = {
+  title: string;
+  owner: string;
+  dueDate: string;
+  ambiguousId: string;
+  url: string;
 };
 export type WorkplaceStatus =
   | { status: "unconfigured"; message: string }
