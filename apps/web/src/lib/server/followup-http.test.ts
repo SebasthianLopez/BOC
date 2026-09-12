@@ -21,7 +21,9 @@ test("POST returns exactly the persisted commitments contract and GET reads by d
     async create(title, description, beforeWrite) { await beforeWrite(); const task = { id: "11111111-1111-4111-8111-111111111111", title, description, url: "https://app.ambiguous.ai/tasks/1" }; records.push(task); return task; },
   };
   const handler = createFollowupHandler({ connect: () => ({ workplace, async close() {} }), directory });
-  const response = await handler(post(proposal));
+  const preparedResponse = await handler(post({ operation: "prepare", proposal }));
+  const { proposal: prepared } = await preparedResponse.json();
+  const response = await handler(post({ operation: "approve", proposalId: prepared.id }));
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.deepEqual(Object.keys(body), ["commitments"]);
@@ -31,8 +33,8 @@ test("POST returns exactly the persisted commitments contract and GET reads by d
 });
 test("cross-origin, absent-session, malformed, and unconfigured approval requests do not write", async () => {
   const handler = createFollowupHandler({ connect: () => undefined, directory: "/unused" });
-  assert.equal((await handler(post(proposal, { origin: "https://evil.example" }))).status, 403);
-  assert.equal((await handler(new Request(`${origin}/api/followups`, { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify(proposal) }))).status, 403);
+  assert.equal((await handler(post({ operation: "prepare", proposal }, { origin: "https://evil.example" }))).status, 403);
+  assert.equal((await handler(new Request(`${origin}/api/followups`, { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify({ operation: "prepare", proposal }) }))).status, 403);
   assert.equal((await handler(post({}))).status, 400);
-  assert.equal((await handler(post(proposal))).status, 503);
+  assert.equal((await handler(post({ operation: "prepare", proposal }))).status, 503);
 });

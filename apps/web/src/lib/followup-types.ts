@@ -21,6 +21,14 @@ export type Commitment = {
   ambiguousId: string;
   url: string;
 };
+export type CommitmentsStatus =
+  | { status: "unconfigured"; message: string }
+  | {
+      status: "connected";
+      workspaceId: string;
+      identityName: string;
+      commitments: Commitment[];
+    };
 export type WorkplaceStatus =
   | { status: "unconfigured"; message: string }
   | {

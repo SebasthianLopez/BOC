@@ -19,23 +19,27 @@ async function fixture(t: TestContext) { const directory = await mkdtemp(join(tm
 
 test("approval creates every displayed commitment and returns real Ambiguous IDs and URLs", async (t) => {
   const { service, workplace } = await fixture(t);
-  const commitments = await service.approve(session, proposal);
+  const prepared = await service.prepare(session, proposal);
+  const commitments = await service.approve(session, prepared.id);
   assert.equal(workplace.creates, 2);
   assert.deepEqual(commitments.map(({ title, owner, dueDate }) => ({ title, owner, dueDate })), proposal.commitments);
   assert.ok(commitments.every((commitment) => commitment.ambiguousId && commitment.url.startsWith("https://app.ambiguous.ai/")));
 });
 test("same approval, including after restart, does not duplicate commitments and read-back is decision keyed", async (t) => {
   const { service, workplace, directory } = await fixture(t);
-  await service.approve(session, proposal); await service.approve(session, proposal);
+  const prepared = await service.prepare(session, proposal);
+  await service.approve(session, prepared.id); await service.approve(session, prepared.id);
   const restarted = new FollowupService(workplace, directory);
-  assert.equal((await restarted.approve(session, proposal)).length, 2);
+  assert.equal((await restarted.approve(session, prepared.id)).length, 2);
   assert.equal(workplace.creates, 2);
   assert.equal((await restarted.list(proposal.decisionId)).length, 2);
 });
-test("invalid or foreign-session approvals create zero tasks", async (t) => {
+test("decline and a foreign-session approval create zero tasks", async (t) => {
   const { service, workplace } = await fixture(t);
-  await assert.rejects(service.approve(session, { ...proposal, decisionId: "unknown" }));
-  await service.approve(session, proposal);
-  await assert.rejects(service.approve("b".repeat(64), proposal), /session/);
-  assert.equal(workplace.creates, 2);
+  const declined = await service.prepare(session, proposal);
+  await service.deny(session, declined.id);
+  await assert.rejects(service.approve(session, declined.id), /declined/);
+  const prepared = await service.prepare(session, proposal);
+  await assert.rejects(service.approve("b".repeat(64), prepared.id), /session/);
+  assert.equal(workplace.creates, 0);
 });
