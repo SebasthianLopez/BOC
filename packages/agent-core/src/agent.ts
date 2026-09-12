@@ -1,7 +1,7 @@
 import { BuiltInAgent } from "@copilotkit/runtime/v2";
 import { resolveModel } from "./model";
 import { SYSTEM_PROMPT } from "./prompt";
-import { workplaceMcpServers } from "./capabilities/workplace";
+import { decisionDeskTools } from "./decision-tools";
 
 /**
  * The agent factory.
@@ -19,28 +19,35 @@ import { workplaceMcpServers } from "./capabilities/workplace";
  * Nothing else in the kit changes. That is the point of AG-UI.
  */
 export type AgentFactoryOptions = {
-  /** Disable workplace MCP for surfaces that should only see local app tools. */
+  /** Retained for caller compatibility; Decision Desk never exposes workplace MCP. */
   workplace?: boolean;
-  /** Override the default incident prompt for a surface-specific starter. */
+  /** Override the Decision Desk prompt for a surface-specific presentation. */
   prompt?: string;
 };
 
-export function makeAgent(threadId: string, options: AgentFactoryOptions = {}) {
-  const agent = new BuiltInAgent({
-    model: resolveModel(),
-    prompt: options.prompt ?? SYSTEM_PROMPT,
+/** The verifiable BuiltInAgent configuration for the Decision Desk runtime. */
+export function decisionDeskAgentConfig(
+  model: ReturnType<typeof resolveModel>,
+  prompt = SYSTEM_PROMPT,
+) {
+  return {
+    model,
+    prompt,
 
-    // NOT optional in practice. maxSteps defaults to 1, which means the agent
-    // can call one tool and then stops — before it ever sees the result. Any
-    // agent with tools needs room to loop.
+    // maxSteps defaults to 1, which would stop after the server half of a
+    // P2→P1 chain before the model can call the visual P1 tool.
     maxSteps: 10,
 
-    // The workplace, when one is configured. Empty array when it is not, so the
-    // agent is never handed tools that would 401. Add your own MCP servers here
-    // the same way — note HTTP transport takes `options` (with a wrapped
-    // `options.fetch` for auth), not `headers`.
-    mcpServers: options.workplace === false ? [] : [...workplaceMcpServers()],
-  });
+    // No MCP/Ambiguous write tool is ever attached to the Decision Desk agent.
+    tools: decisionDeskTools,
+    mcpServers: [],
+  };
+}
+
+export function makeAgent(threadId: string, options: AgentFactoryOptions = {}) {
+  const agent = new BuiltInAgent(
+    decisionDeskAgentConfig(resolveModel(), options.prompt ?? SYSTEM_PROMPT),
+  );
   agent.threadId = threadId;
   return agent;
 }
