@@ -169,11 +169,11 @@ test("coverage and transaction cost research stay in separate criterion-specific
       decision,
       alternativeId: "dlocal",
       criterionId: "transaction-cost",
-      query: "dLocal costos por transacción",
+      query: "dLocal costos y comisiones para Paraguay y Brasil",
     });
     assert.deepEqual(queries, [
       "dLocal métodos locales Paraguay Brasil",
-      "dLocal costos por transacción",
+      "dLocal costos y comisiones para Paraguay y Brasil",
     ]);
     assert.deepEqual(coverage, [{
       id: "exa-coverage",

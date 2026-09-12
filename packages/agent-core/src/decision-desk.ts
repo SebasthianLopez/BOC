@@ -17,7 +17,7 @@ const SEARCH_TYPE = (process.env.EXA_SEARCH_TYPE ?? "fast") as
 
 const COST_TERMS = ["costo", "cost", "precio", "pricing", "tarifa", "fee", "comisi"];
 const COVERAGE_TERMS = ["cobertura", "cobertura", "método", "metodo", "payment", "pago", "local", "paraguay", "brasil", "brazil"];
-const COVERAGE_QUERY_TERMS = ["cobertura", "método", "metodo", "payment", "pago", "paraguay", "brasil", "brazil"];
+const COVERAGE_QUERY_TERMS = ["cobertura", "método", "metodo", "payment method", "medios de pago", "formas de pago"];
 
 export function isExaConfigured(): boolean {
   return Boolean(process.env.EXA_API_KEY);
