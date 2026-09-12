@@ -1,150 +1,122 @@
-<div align="center">
+# Decision Desk
 
-# Agents, Everywhere Hackathon Starter Kit
+> Un agente que ayuda a equipos a convertir una decisión bloqueada en evidencia,
+> una propuesta revisable y compromisos con responsables.
 
-![Agents, Everywhere hackathon — OpenAI, CopilotKit, OpenRouter, Exa, Auth0, and Ambiguous AI](assets/banner.png)
+Proyecto de **Breakfast of Champions (BOC)** para *Agents, Everywhere: Bots,
+Channels & More* — AI Tinkerers San Lorenzo, septiembre de 2026.
 
-**Build an agent that belongs where people already work, talk, and live.**
+## El problema
 
-[Overview](#overview) · [Get started](#get-started) · [Templates](#templates) · [Coding agent](#coding-agent) · [Resources](#resources)
+Las decisiones de equipo suelen quedar repartidas entre mensajes, enlaces y
+opiniones: no es claro qué evidencia falta, quién decide ni qué debe pasar
+después. Un chat genérico puede responder una pregunta, pero no mantiene el
+estado compartido de esa decisión.
 
-</div>
+## La solución
 
-## Overview
+Decision Desk vive dentro de una página de decisión. El equipo ve alternativas,
+criterios, participantes, notas y evidencia en el mismo lugar donde trabaja. El
+agente usa ese contexto para:
 
-Build for **[Agents, Everywhere: Bots, Channels, & More](https://aitinkerers.org/hackathons/global/agents-everywhere)**, the AI Tinkerers global hackathon on **September 12–13, 2026**. Choose your city on the event page for its local schedule. Put an agent inside a conversation, an app, a phone, or a physical environment. Make the context of that place essential to what it can do.
+1. detectar huecos, como evidencia faltante, un criterio ausente o falta de un
+   responsable;
+2. investigar una alternativa cuando una persona lo solicita;
+3. adjuntar evidencia con enlaces reales a la alternativa correspondiente;
+4. proponer una recomendación y compromisos con responsable y fecha;
+5. esperar una aprobación humana explícita antes de crear tareas persistentes.
 
-This kit gives you three runnable templates, files to hand to your coding agent, and sponsor setup notes. Pick a user, a problem, and one complete interaction. You can use any stack; you do not need every sponsor or every surface.
+Rechazar una propuesta no crea tareas. Aprobar la misma propuesta dos veces no
+debe duplicarlas.
 
-Your project and its core functionality must be created during the event. Existing libraries, templates, and starter code are allowed; describe what you reuse and what you build. Read [the rules](hackathon-rules.md), then follow your city's participant portal for the current deadline and judging criteria.
+## Por qué el contexto importa
 
-## Get started
+El agente no recibe una pregunta aislada: lee el mapa de decisión que la persona
+está revisando. Por eso puede señalar exactamente qué alternativa no tiene
+evidencia de costo, qué criterio aún no fue evaluado y qué compromiso falta
+para poder avanzar. Sin esa página compartida, sería solo otro chatbot.
 
-Use Node.js 22+, then clone and install the kit:
+## Stack
+
+- **Web:** Next.js + TypeScript + CopilotKit React.
+- **Agente:** OpenAI Agents SDK mediante OpenRouter.
+- **Investigación:** Exa, con fuentes enlazadas a cada alternativa.
+- **Resultado persistente:** Ambiguous AI, después de aprobación humana.
+
+## Ejecutar localmente
+
+Requisitos: Node.js 22 o superior y npm.
 
 ```bash
-git clone https://github.com/CopilotKit/agents-everywhere-starter-kit.git
-cd agents-everywhere-starter-kit
+git clone https://github.com/SebasthianLopez/BOC.git
+cd BOC
 npm ci
 cp .env.example .env
+npm run dev:web
 ```
 
-Choose one template and configure only the credentials it needs. Slack and web use the root install; React Native has its own install under `apps/mobile` because Expo pins its React Native stack separately.
+Abrí `http://127.0.0.1:3100`.
 
-Paste this into your coding agent:
+En Windows PowerShell, para crear el archivo de variables usá:
 
-```text
-Read AGENTS.md, hackathon-overview.md, hackathon-rules.md, and
-using-sponsor-tools.md. Help me choose one template app README for my idea,
-then adapt this checkout into our own project. Ask me who it is for and
-what the agent should do in that setting. Follow this README's CopilotKit
-onboarding section for the selected app; keep its existing infrastructure.
-Use only the integrations the idea needs. Verify a complete interaction and
-prepare SUBMISSION.md, distinguishing inherited code from our event work.
+```powershell
+Copy-Item .env.example .env
 ```
 
-### CopilotKit onboarding
+Configurá solo las variables necesarias en `.env`; nunca subas ese archivo:
 
-Use the team's maintained setup prompts in the same coding-agent session, with this checkout as the project root. Choose one app first; setup should adapt that app rather than scaffold a second starter over it.
-
-| Your starting point | Onboarding path |
-|---|---|
-| Slack template | Run `npm run channel:setup -- --no-clipboard`, then have your agent follow the prompt it prints. This installs the current `channels-setup` skill; the command itself does not create a Channel or sign you in. Tell the agent to connect **Slack** using `apps/channel` and read its bundled `build-channels-agent` skill. |
-| Web or React Native template | The existing model-provider setup runs without Intelligence. To add managed conversations with Rich Threads and other Intelligence capabilities, use the prompt below for the chosen app. |
-
-**Connect the selected app to CopilotKit Intelligence:**
-
-```text
-Read AGENTS.md and the selected app README. Connect that app to CopilotKit
-Intelligence using the current official onboarding workflow. This checkout
-already has CopilotKit: preserve the existing app, agent, model provider,
-tools, and approval behavior. For apps/mobile, keep Expo and the separate
-mobile install; its runtime is served by apps/web.
-Generate a fresh 12-character hexadecimal run ID, substitute it for RUN_ID,
-then run from the repository root:
-npx --yes copilotkit@latest onboard start --run RUN_ID
-Follow the instructions returned by the CLI and reuse that ID for this run.
-Show the integration plan before editing, and prove the selected app works
-before and after connecting Intelligence.
+```env
+MODEL_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...
+MODEL=publisher/model-with-tools
+EXA_API_KEY=...
+AMBIGUOUS_API_KEY=...
 ```
 
-The [official CopilotKit prompt](https://docs.copilotkit.ai/llms.txt) serves new projects, existing apps, and existing CopilotKit integrations. The [docs home](https://docs.copilotkit.ai/) also offers **Copy Prompt**, **Open in Codex**, and **Open in Claude Code**; add the selected template's context when using those entry points. For Slack, use the [Channels onboarding path](https://docs.copilotkit.ai/slack) above. Finish one selected workflow before starting another.
+Sin Exa, el agente debe informar que no puede investigar; no puede inventar
+fuentes. Sin Ambiguous, la aprobación debe informar que no está configurada en
+lugar de afirmar que creó una tarea.
 
-Follow the CLI's returned instructions for sign-in, project selection, credentials, and verification. Keep credentials out of chat and preserve existing `.env` values. The starter reads `INTELLIGENCE_API_KEY`; if setup provisions `CPK_INTELLIGENCE_API_KEY`, map it to the variable the selected runtime actually reads. Review any required package upgrades together with the tested Channels/runtime pair and `@ag-ui/client` override. Intelligence onboarding changes the app; installing a skill or adding an API key alone does not complete that integration.
+## Verificación
 
-## Templates
+```bash
+npm run typecheck
+npm run test --workspace web
+```
 
-These starting points serve different kinds of context. **CopilotKit Channels** brings the Slack agent into the conversation; **CopilotKit React** connects the web agent to the app people are using; **CopilotKit React Native** brings the same agent pattern onto a phone.
+La demostración final debe probar: detección de un hueco, investigación con una
+fuente visible, propuesta de compromisos, aprobación y persistencia tras
+recargar. También debe mostrar el caso de rechazo, donde no se crea ninguna
+tarea.
 
-### 1. Slack — an agent that joins the thread
+## Trabajo del equipo
 
-**OpenAI + CopilotKit Channels + Exa**
+| Rol | Responsabilidad |
+| --- | --- |
+| P1 | Mapa de decisión y experiencia web. |
+| P2 | Prompt y herramientas del agente. |
+| P3 | Datos, API, persistencia e idempotencia. |
+| P4 | Integración, documentación, demo y entrega. |
 
-An agent reads what people already said, researches with Exa, and answers in the same thread with native cards and source links. Start with a support conversation, a research discussion, or a team decision.
+Cada integrante trabaja en su propia rama y abre un Pull Request hacia `main`.
+P4 publica las instrucciones de configuración y las skills por rol junto con la
+integración del equipo.
 
-The included Slack app supplies thread history, subscriptions, search, and Channels UI. Configure your model, Exa, and a managed Channel, then run `npm run dev:slack`. No public tunnel is needed. Teams or other chat platforms can use the same Channels pattern, but this starter ships the Slack app.
+## Código heredado y trabajo del equipo
 
-**[Use the Slack template →](apps/channel/)**
+Este repositorio comenzó a partir de
+[`CopilotKit/agents-everywhere-starter-kit`](https://github.com/CopilotKit/agents-everywhere-starter-kit).
+Del starter se reutilizan la estructura del monorepo, Next.js, CopilotKit, la
+configuración del modelo, el patrón de aprobación y los tests base.
 
-### 2. Web — an agent inside your app
+El equipo BOC construye durante el hackathon el dominio de **Decision Desk**:
+los tipos y datos de decisiones, el mapa de alternativas y criterios, la
+detección de huecos, la investigación vinculada, las propuestas de decisión y
+la creación idempotente de compromisos aprobados. La lista final de cambios se
+mantiene en `SUBMISSION.md`.
 
-**OpenAI + CopilotKit React + Ambiguous AI**
+## Estado
 
-An agent sees the page you are on and turns a request into a real workplace record you can still find after a refresh. Adapt it to customer follow-ups, a project workspace, or a personal planning app.
-
-The included web app supplies page context, frontend tools, agent-rendered UI, and a browser approval step. Connect an Ambiguous AI workspace, then run `npm run dev:web`; approved follow-ups are saved through the server and can be read back after refresh.
-
-**[Use the web template →](apps/web/)**
-
-### 3. React Native — an agent in your pocket
-
-**OpenAI or OpenRouter + CopilotKit React Native**
-
-A mobile agent reads app state, renders native cards, and waits for a tap before changing local sample data. Start with a personal finance assistant, a field checklist, an inventory counter, or any workflow where phone context and approval matter.
-
-The included Expo app supplies seeded finance state, native rendered tool UI, a human-in-the-loop expense approval, and a mobile-specific CopilotKit runtime endpoint served by the web app. Configure your model provider, start `npm run dev:web`, then run the mobile app from `apps/mobile`.
-
-**[Use the React Native template →](apps/mobile/)**
-
-### Make the demo yours
-
-The supplied on-call and finance assistants are **infrastructure examples**: read ambient context, call a tool, render useful UI, and return a verifiable result. Choose a different user, problem, dataset, and interaction; the goal is your own project, not another version of the starter scenario.
-
-Use the [demo prompts](dev-docs/demo-prompts.md) to learn how the pieces connect, then replace the sample domain. In the Slack sample incident flow, approval cards record decisions without executing production actions. In the web follow-up flow, the page approval button saves the reviewed Ambiguous task. In the mobile finance flow, approval changes local in-memory sample data. Enforce the same kind of write boundary around any external action you add.
-
-Want another surface pattern? The web app also includes a voice route, and the shared agent can connect to remote MCP tools when configured. The event surfaces are inspiration, not separate tracks or a requirement to build multiple apps.
-
-## Coding agent
-
-Give your agent these files before it starts coding:
-
-| File | What it provides |
-|---|---|
-| [hackathon-overview.md](hackathon-overview.md) | The challenge, four surfaces, and official judging criteria |
-| [hackathon-rules.md](hackathon-rules.md) | Build eligibility, inherited code, and required deliverables |
-| [using-sponsor-tools.md](using-sponsor-tools.md) | Every sponsor featured in this kit: access, authentication, configuration, and a first working call |
-| [AGENTS.md](AGENTS.md) | Repository conventions and verification commands |
-| [Channels skill](.agents/skills/build-channels-agent/SKILL.md) | Verified Channels APIs for the Slack template |
-
-The app READMEs provide launch commands, files to customize, and a concrete result to check. Start with one template and add a second surface only if it helps your user.
-
-## Resources
-
-| Need | Go here |
-|---|---|
-| Event details, deadline, and judging | [Find your city](https://aitinkerers.org/hackathons/global/agents-everywhere), then open its participant portal and handbook |
-| OpenAI agent development | [Agents SDK quickstart](https://openai.github.io/openai-agents-js/guides/quickstart/) |
-| OpenRouter access and model choice | [Quickstart](https://openrouter.ai/docs/quickstart) · [Keys](https://openrouter.ai/keys) · [Model catalog](https://openrouter.ai/models) · [Model switching](dev-docs/model-switching.md) |
-| CopilotKit app development | [Docs](https://docs.copilotkit.ai/) · [Tools and context](dev-docs/tools-and-context.md) · [Discord channel for technical questions](https://discord.com/channels/1122926057641742418/1548038338848489532) |
-| CopilotKit Channels | [Channels guide](https://copilotkit.ai/channels-guide.md) · [Screenshot walkthrough](dev-docs/channels-sdk-walkthrough/README.md) · [OpenTag example app](https://github.com/CopilotKit/OpenTag) |
-| Exa quickstart | [Search API guide](https://exa.ai/docs/reference/search-api-guide) · [Kit setup](using-sponsor-tools.md#exa) |
-| Auth0 API authorization | [Node API](https://auth0.com/docs/quickstart/backend/nodejs) · [Kit setup](using-sponsor-tools.md#auth0) |
-| Ambiguous AI quickstart | [Developer guide](https://www.ambiguous.ai/llms.txt) · [Kit setup](using-sponsor-tools.md#ambiguous-ai) |
-| Rehearse and debug | [Demo prompts](dev-docs/demo-prompts.md) · [Troubleshooting](dev-docs/troubleshooting.md) |
-| Prepare your entry | [Submission checklist](SUBMISSION.md) |
-
-For credit redemption instructions, choose your city on the [global event page](https://aitinkerers.org/hackathons/global/agents-everywhere) and check its participant portal's **Credits & Offers** section.
-
-For technical questions during the event, check your city's participant portal and ask your local organizers.
-
-For the Slack/web workspaces, `npm run verify` runs typechecks and offline tests without credentials. The mobile app has its own install, tests, typecheck, and Metro export checks under `apps/mobile`. Each app reports missing configuration when the relevant integration is used. Live sponsor calls and platform delivery require your accounts. See [developer docs](dev-docs/README.md) for detailed setup and deployment.
+La funcionalidad se desarrolla durante el hackathon. Las afirmaciones de demo,
+fuentes consultadas e IDs de tareas se validan en la integración final; no se
+simulan como resultados reales.
