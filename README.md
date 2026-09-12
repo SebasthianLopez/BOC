@@ -102,9 +102,9 @@ tarea.
 | Rol | Responsabilidad |
 | --- | --- |
 | P1 | Mapa de decisión y experiencia web. |
-| P2 | Prompt y herramientas del agente. |
+| P2 | Prompt y herramientas del agente; presentación y grabación del video. |
 | P3 | Datos, API, persistencia e idempotencia. |
-| P4 | Integración, documentación, demo y entrega. |
+| P4 | Integración, documentación, preparación de demo y entrega. |
 
 Cada integrante trabaja en su propia rama y abre un Pull Request hacia `main`.
 P4 publica las instrucciones de configuración y las skills por rol junto con la

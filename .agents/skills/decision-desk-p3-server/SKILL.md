@@ -13,7 +13,7 @@ Only edit `apps/web/src/lib/**` and `apps/web/src/app/api/**`. Do not edit compo
 
 ## Contracts
 
-Decision data uses the exact section-5 types in `apps/web/src/lib/decisions.ts`. `Proposal` contains `decisionId`, `recommendation`, `rationale`, and `{ title, owner, dueDate }` commitments. Approval returns exactly `{ commitments: [{ title, owner, dueDate, ambiguousId, url }] }`. Read-back is keyed by `decisionId`; IDs/links originate only from Ambiguous.
+Decision data uses the exact section-5 types in `apps/web/src/lib/decisions.ts`. `Proposal` contains `decisionId`, `recommendation`, `rationale`, and `{ title, owner, dueDate }` commitments. Approval returns exactly `{ commitments: [{ title, owner, dueDate, ambiguousId, url: string | null }] }`. Read-back is keyed by `decisionId`; IDs and non-null links originate only from Ambiguous. A missing provider URL must not invalidate a real task with a verified ID, and the server must never manufacture a record URL.
 
 Keep JSON/origin/session validation, workspace/identity binding, expiry, immutable server-held approval fields, and idempotency per commitment. Same approval cannot duplicate tasks, including after restart. Decline and reads create zero tasks; provider errors never leak secrets.
 

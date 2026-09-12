@@ -95,14 +95,41 @@ apps/mobile.
 Implementá la decisión inicial Stripe vs dLocal exactamente como aparece en
 PROYECTO.md. Creá los contratos de datos, la aprobación/rechazo y la
 persistencia en Ambiguous. Approval recibe Proposal y responde exactamente
-{ commitments: [{ title, owner, dueDate, ambiguousId, url }] }. Rechazar crea
-cero tareas; una misma aprobación no duplica compromisos y el refresh los
-relee por decisionId.
+{ commitments: [{ title, owner, dueDate, ambiguousId, url: string | null }] }.
+El ID siempre es obligatorio; la URL es null cuando Ambiguous no la devuelve y
+nunca se fabrica. Rechazar crea cero tareas; una misma aprobación no duplica
+compromisos y el refresh los relee por decisionId.
 
 Primero mostrám un plan archivo por archivo, los casos de test y cómo se
 preservan validación/origin/session/idempotencia. Después de aprobarlo,
 implementá, ejecutá npm run typecheck y npm run test --workspace web, y
 reportá los resultados exactos.
+```
+
+## P2 — Preparación y grabación de la demo
+
+Usar este prompt únicamente después de que P4 confirme que el `main` integrado está listo:
+
+```text
+Además de mi rol técnico P2, soy el presentador y responsable de grabar la demo
+oficial de Decision Desk. Esto no amplía mi permiso para modificar código.
+
+Antes de ensayar, leé completos AGENTS.md, PROYECTO.md, FRONTEND_STYLE.md,
+DEMO_RUNBOOK.md y .agents/skills/decision-desk-p2-agent/SKILL.md.
+
+Primero verificá las condiciones previas de DEMO_RUNBOOK.md y preparame una
+lista PASS/FAIL. No muestres ni leas .env, claves o datos personales. Si alguna
+integración falla, detenete y reportá el paso exacto; no simules resultados ni
+modifiques archivos de P1/P3.
+
+Después ensayá los prompts oficiales sin aprobar escrituras fuera del workspace
+de prueba. Ayudame a seguir el guion con un cronómetro de dos minutos. Antes de
+grabar, confirmá que la propuesta contiene solo los compromisos oficiales de
+Diego y Sofía, que no hay fechas pasadas y que Ambiguous puede demostrar IDs y
+persistencia sin duplicados.
+
+Al terminar la grabación, revisá duración, audio, legibilidad y que no aparezcan
+secretos. Entregá el video a P4; no lo publiques ni envíes al portal.
 ```
 
 ## Prompt de entrega para cualquier rol
