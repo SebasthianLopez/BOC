@@ -26,8 +26,11 @@ Pegá esto en Codex o Claude Code:
 ```text
 Soy P1, responsable solo del frontend de Decision Desk. Antes de editar leé
 AGENTS.md, PROYECTO.md completo, TEAM_SETUP.md y
-.agents/skills/decision-desk-p1-frontend/SKILL.md. Respetá la skill como regla
-obligatoria.
+.agents/skills/decision-desk-p1-frontend/SKILL.md. Para el rediseño leé también
+FRONTEND_STYLE.md y .agents/skills/taste-skill/SKILL.md completos. Respetá la
+skill del rol y el brief visual como reglas obligatorias. Taste se usa como
+auditor de acabado; si propone patrones de landing page o nuevas dependencias,
+FRONTEND_STYLE.md tiene prioridad.
 
 Mi alcance exclusivo es apps/web/src/components/** y apps/web/src/app/page.tsx.
 No modifiques lib, api, packages, dependencias, .env, apps/channel ni
@@ -38,11 +41,17 @@ alternativas, criterios, huecos, evidencia por alternativa, tarjeta de
 propuesta con Approve/Decline e historial de compromisos. El chat no puede
 autorizar escrituras. Usá únicamente los contratos de PROYECTO.md.
 
-Primero mostrám un plan archivo por archivo y los contratos de P2/P3 que vas a
-consumir. Si decisions.ts o el adaptador de P3 todavía no existe, construí
-componentes tipados que reciban props; no crees una implementación alternativa
-en lib ni inventes endpoints. Después de que apruebe el plan, implementá,
-ejecutá los checks web relevantes y reportá resultados exactos.
+Rediseñá la interfaz con la paleta exacta de FRONTEND_STYLE.md y los diales
+4/2/7. La decisión debe dominar la pantalla y el chat debe funcionar como
+herramienta lateral. Reutilizá el CSS, componentes, fuentes y dependencias ya
+existentes. No hagas una landing page, no agregues paquetes y no cambies lógica,
+tools, contratos ni endpoints.
+
+Primero auditá la UI actual siguiendo el protocolo de rediseño de Taste y
+declarame en una línea la lectura de diseño. Después mostrám un plan archivo por
+archivo y confirmá qué contratos de P2/P3 preservarás. Implementá solo tras mi
+aprobación. Al terminar, ejecutá los checks web relevantes, verificá escritorio
+y móvil y reportá resultados exactos.
 ```
 
 ## P2 — Agente
