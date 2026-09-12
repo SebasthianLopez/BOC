@@ -22,7 +22,7 @@ export const detectGapsTool = defineTool({
 
 export const researchAlternativeTool = defineTool({
   name: "research_alternative",
-  description: "Only after an explicit user research request, search Exa and return Evidence[] with real returned URLs. Never writes.",
+  description: "Only after an explicit user research request, search Exa for exactly one criterionId and return its Evidence[] with real returned URLs. For the official coverage-and-cost request, call this twice: payment-methods with a coverage-only query, then transaction-cost with a cost-only query. Do not mix results or criterionIds. Never writes.",
   parameters: researchAlternativeParameters,
   execute: async (input) => {
     if (!isExaConfigured()) throw new Error(EXA_UNAVAILABLE_MESSAGE);

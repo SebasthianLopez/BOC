@@ -15,6 +15,10 @@ export const OFFICIAL_DUE_DATE = "Antes del siguiente hito";
 const SEARCH_TYPE = (process.env.EXA_SEARCH_TYPE ?? "fast") as
   "instant" | "fast" | "auto" | "deep-lite" | "deep" | "deep-reasoning";
 
+const COST_TERMS = ["costo", "cost", "precio", "pricing", "tarifa", "fee", "comisi"];
+const COVERAGE_TERMS = ["cobertura", "cobertura", "método", "metodo", "payment", "pago", "local", "paraguay", "brasil", "brazil"];
+const COVERAGE_QUERY_TERMS = ["cobertura", "método", "metodo", "payment", "pago", "paraguay", "brasil", "brazil"];
+
 export function isExaConfigured(): boolean {
   return Boolean(process.env.EXA_API_KEY);
 }
@@ -33,6 +37,26 @@ function hasEvidenceFor(alternative: Decision["alternatives"][number], criterion
     (!criterionId || evidence.criterionId === criterionId) &&
     includesAny(`${evidence.claim} ${evidence.source}`, terms),
   );
+}
+
+function validateFocusedResearchQuery(criterionId: string, query: string) {
+  if (criterionId === "payment-methods" && includesAny(query, COST_TERMS)) {
+    throw new Error("Research payment-methods separately from transaction-cost; do not mix pricing terms into this query.");
+  }
+  if (criterionId === "transaction-cost" && includesAny(query, COVERAGE_QUERY_TERMS)) {
+    throw new Error("Research transaction-cost separately from payment-methods; do not mix coverage terms into this query.");
+  }
+}
+
+function matchesCriterion(criterionId: string, title: string, claim: string) {
+  const text = `${title} ${claim}`;
+  if (criterionId === "payment-methods") {
+    return includesAny(text, COVERAGE_TERMS) && !includesAny(text, COST_TERMS);
+  }
+  if (criterionId === "transaction-cost") {
+    return includesAny(text, COST_TERMS);
+  }
+  return true;
 }
 
 /**
@@ -84,6 +108,7 @@ export async function researchAlternative(input: ResearchAlternativeArgs): Promi
   const { decision, alternativeId, query, criterionId, results } = researchAlternativeParameters.parse(input);
   const alternative = decision.alternatives.find((item) => item.id === alternativeId);
   if (!alternative) throw new Error("The requested alternative is not present in the decision context.");
+  validateFocusedResearchQuery(criterionId, query);
 
   const apiKey = process.env.EXA_API_KEY;
   if (!apiKey) return [];
@@ -99,11 +124,11 @@ export async function researchAlternative(input: ResearchAlternativeArgs): Promi
     // Do not synthesize identifiers, URLs, or claims: every returned field is Exa data.
     if (!hit.id || !hit.url || !hit.title) return [];
     const claim = hit.highlights?.[0];
-    if (!claim) return [];
+    if (!claim || !matchesCriterion(criterionId, hit.title, claim)) return [];
     return [{
       id: hit.id,
       alternativeId: alternative.id,
-      ...(criterionId ? { criterionId } : {}),
+      criterionId,
       claim,
       url: hit.url,
       source: hit.title,

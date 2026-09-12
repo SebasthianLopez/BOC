@@ -91,7 +91,8 @@ export const researchAlternativeParameters = z.object({
   decision: decisionSchema,
   alternativeId: z.string().min(1),
   query: z.string().min(1),
-  criterionId: z.string().min(1).optional(),
+  /** One call researches one criterion; multi-criterion requests are split by the agent. */
+  criterionId: z.string().min(1),
   results: z.number().int().min(1).max(10).default(5),
 });
 

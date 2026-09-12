@@ -24,8 +24,8 @@ const decision: Decision = {
   context: "Vender un curso online a clientes de Paraguay y Brasil.",
   participants: ["Valeria", "Diego", "Sofía"],
   criteria: [
-    { id: "coverage", name: "Cobertura de métodos de pago en Paraguay y Brasil" },
-    { id: "cost", name: "Costo total por transacción" },
+    { id: "payment-methods", name: "Cobertura de métodos de pago en Paraguay y Brasil" },
+    { id: "transaction-cost", name: "Costo total por transacción" },
     { id: "integration", name: "Esfuerzo de integración y soporte técnico" },
     { id: "compliance", name: "Requisitos de cumplimiento y operación" },
   ],
@@ -80,7 +80,8 @@ test("researchAlternative returns no invented evidence without EXA_API_KEY", asy
   assert.deepEqual(await researchAlternative({
     decision,
     alternativeId: "dlocal",
-    query: "dLocal Paraguay Brasil costos y métodos locales",
+    criterionId: "transaction-cost",
+    query: "dLocal costos por transacción",
   }), []);
 });
 
@@ -90,30 +91,118 @@ test("research_alternative preserves an Exa result URL as Evidence[]", async () 
   (Exa.prototype.searchAndContents as unknown as (query: string, options: unknown) => Promise<unknown>) = async () => ({
     results: [{
       id: "exa-result-dlocal",
-      title: "dLocal",
+      title: "dLocal payment methods in Paraguay and Brazil",
       url: "https://www.dlocal.com/",
-      highlights: ["dLocal provides cross-border payment infrastructure."],
+      highlights: ["dLocal supports local payment methods in Paraguay and Brazil."],
     }],
   });
   try {
     const evidence = await researchAlternative({
       decision,
       alternativeId: "dlocal",
-      criterionId: "coverage",
+      criterionId: "payment-methods",
       query: "dLocal Paraguay Brasil métodos de pago locales",
     });
     assert.deepEqual(evidence, [{
       id: "exa-result-dlocal",
       alternativeId: "dlocal",
-      criterionId: "coverage",
-      claim: "dLocal provides cross-border payment infrastructure.",
+      criterionId: "payment-methods",
+      claim: "dLocal supports local payment methods in Paraguay and Brazil.",
       url: "https://www.dlocal.com/",
-      source: "dLocal",
+      source: "dLocal payment methods in Paraguay and Brazil",
       addedBy: "agent",
     }]);
   } finally {
     Exa.prototype.searchAndContents = originalSearch;
   }
+});
+
+test("coverage and transaction cost research stay in separate criterion-specific Evidence arrays", async () => {
+  const originalSearch = Exa.prototype.searchAndContents;
+  const queries: string[] = [];
+  process.env.EXA_API_KEY = "test-key";
+  (Exa.prototype.searchAndContents as unknown as (query: string, options: unknown) => Promise<unknown>) = async (query) => {
+    queries.push(query);
+    if (query.includes("métodos locales")) {
+      return {
+        results: [
+          {
+            id: "exa-coverage",
+            title: "dLocal local payment methods",
+            url: "https://www.dlocal.com/payment-methods",
+            highlights: ["dLocal supports local payment methods in Paraguay and Brazil."],
+          },
+          {
+            id: "exa-price-misplaced",
+            title: "dLocal pricing",
+            url: "https://www.dlocal.com/pricing",
+            highlights: ["Transaction fees depend on the market."],
+          },
+        ],
+      };
+    }
+    return {
+      results: [
+        {
+          id: "exa-cost",
+          title: "dLocal transaction pricing",
+          url: "https://www.dlocal.com/pricing",
+          highlights: ["Transaction fees depend on the market and payment method."],
+        },
+        {
+          id: "exa-coverage-misplaced",
+          title: "dLocal local payment methods",
+          url: "https://www.dlocal.com/payment-methods",
+          highlights: ["dLocal supports local payment methods in Paraguay and Brazil."],
+        },
+      ],
+    };
+  };
+  try {
+    const coverage = await researchAlternative({
+      decision,
+      alternativeId: "dlocal",
+      criterionId: "payment-methods",
+      query: "dLocal métodos locales Paraguay Brasil",
+    });
+    const costs = await researchAlternative({
+      decision,
+      alternativeId: "dlocal",
+      criterionId: "transaction-cost",
+      query: "dLocal costos por transacción",
+    });
+    assert.deepEqual(queries, [
+      "dLocal métodos locales Paraguay Brasil",
+      "dLocal costos por transacción",
+    ]);
+    assert.deepEqual(coverage, [{
+      id: "exa-coverage",
+      alternativeId: "dlocal",
+      criterionId: "payment-methods",
+      claim: "dLocal supports local payment methods in Paraguay and Brazil.",
+      url: "https://www.dlocal.com/payment-methods",
+      source: "dLocal local payment methods",
+      addedBy: "agent",
+    }]);
+    assert.deepEqual(costs, [{
+      id: "exa-cost",
+      alternativeId: "dlocal",
+      criterionId: "transaction-cost",
+      claim: "Transaction fees depend on the market and payment method.",
+      url: "https://www.dlocal.com/pricing",
+      source: "dLocal transaction pricing",
+      addedBy: "agent",
+    }]);
+  } finally {
+    Exa.prototype.searchAndContents = originalSearch;
+  }
+});
+
+test("prompt requires separate research and attachment for coverage and costs", () => {
+  assert.match(DECISION_DESK_ROLE, /A research_alternative call covers exactly one criterionId/);
+  assert.match(DECISION_DESK_ROLE, /criterionId "payment-methods"[\s\S]*then attach that Evidence\[\]/);
+  assert.match(DECISION_DESK_ROLE, /criterionId "transaction-cost"[\s\S]*attach that separate Evidence\[\]/);
+  assert.match(DECISION_DESK_ROLE, /Never put pricing\s+documents under payment-methods/);
 });
 
 test("BuiltInAgent receives only the three read/prepare Decision Desk tools", async () => {
@@ -135,6 +224,7 @@ test("BuiltInAgent receives only the three read/prepare Decision Desk tools", as
     () => research({
       decision,
       alternativeId: "dlocal",
+      criterionId: "payment-methods",
       query: "dLocal Paraguay Brasil",
       results: 5,
     }),
