@@ -8,6 +8,12 @@ export { MOBILE_FINANCE_PROMPT } from "./mobile-finance-prompt";
 export { resolveModel } from "./model";
 export { searchWeb, isSearchConfigured } from "./capabilities/search";
 export {
+  detectGaps,
+  researchAlternative,
+  proposeDecision,
+  EXA_UNAVAILABLE_MESSAGE,
+} from "./decision-desk";
+export {
   workplaceMcpServers,
   isWorkplaceConfigured,
   WORKPLACE_CONTEXT,
