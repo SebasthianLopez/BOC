@@ -19,7 +19,7 @@ export class FollowupService {
   private path(id: string) { return join(this.directory, `${id}.json`); }
   private marker(decisionId: string, id: string) { return `decision-desk:${decisionId}\napproval:${id}`; }
   private description(proposal: Proposal, commitment: Proposal["commitments"][number], id: string) { return [proposal.rationale, `Recommendation: ${proposal.recommendation}`, `Owner: ${commitment.owner}`, `Due date: ${commitment.dueDate}`, this.marker(proposal.decisionId, id)].join("\n\n"); }
-  private output(task: WorkplaceTask, commitment: Proposal["commitments"][number]): Commitment { if (!task.url) throw new FollowupError("Ambiguous returned no record link; the commitment cannot be confirmed."); return { ...commitment, ambiguousId: task.id, url: task.url }; }
+  private output(task: WorkplaceTask, commitment: Proposal["commitments"][number]): Commitment { return { ...commitment, ambiguousId: task.id, url: task.url }; }
   async prepare(session: string, input: unknown): Promise<PreparedProposal> {
     const proposal = proposalSchema.parse(input); findDecision(proposal.decisionId);
     const identity = await this.workplace.identity(); const id = randomUUID(); const expiresAt = this.now() + 10 * 60_000;
@@ -35,7 +35,7 @@ export class FollowupService {
     return value;
   }
   async deny(session: string, id: string) { await this.stored(session, id); try { await writeFile(`${this.path(id)}.decision`, "declined", { flag: "wx", mode: 0o600 }); } catch (error) { if (!exists(error)) throw error; } }
-  async list(decisionId: string): Promise<Commitment[]> { findDecision(decisionId); return (await this.workplace.list(`decision-desk:${decisionId}`)).map((task) => { const owner = /^Owner: (.+)$/m.exec(task.description)?.[1]; const dueDate = /^Due date: (.+)$/m.exec(task.description)?.[1]; if (!owner || !dueDate || !task.url) throw new FollowupError("Ambiguous returned an incomplete Decision Desk commitment."); return { title: task.title, owner, dueDate, ambiguousId: task.id, url: task.url }; }); }
+  async list(decisionId: string): Promise<Commitment[]> { findDecision(decisionId); return (await this.workplace.list(`decision-desk:${decisionId}`)).map((task) => { const owner = /^Owner: (.+)$/m.exec(task.description)?.[1]; const dueDate = /^Due date: (.+)$/m.exec(task.description)?.[1]; if (!owner || !dueDate) throw new FollowupError("Ambiguous returned an incomplete Decision Desk commitment."); return { title: task.title, owner, dueDate, ambiguousId: task.id, url: task.url }; }); }
   async approve(session: string, id: string): Promise<Commitment[]> {
     const saved = await this.stored(session, id); const identity = await this.workplace.identity();
     if (saved.workspaceId !== identity.workspaceId || saved.identityId !== identity.id) throw new FollowupError("The connected workspace or identity changed. Prepare a new proposal before approving.");
