@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { z } from "zod";
-import { officialDecision } from "./official-case";
+import { initialDecision } from "@/lib/decisions";
 import {
   attachEvidenceParameters,
   openProposalParameters,
@@ -50,7 +50,7 @@ test("los campos opcionales no quedan como requeridos", () => {
 });
 
 test("show_gaps acepta un hueco del caso oficial y rechaza uno vacio", () => {
-  const criterion = officialDecision.criteria[0].id;
+  const criterion = initialDecision.criteria[0].id;
   assert.ok(
     showGapsParameters.safeParse({
       gaps: [{ kind: "evidence", criterionId: criterion, message: "Falta." }],
@@ -68,7 +68,7 @@ test("show_gaps acepta un hueco del caso oficial y rechaza uno vacio", () => {
 });
 
 test("attach_evidence exige una URL real y al menos un item", () => {
-  const alternativeId = officialDecision.alternatives[0].id;
+  const alternativeId = initialDecision.alternatives[0].id;
   const base = {
     id: "ev-1",
     alternativeId,
@@ -91,7 +91,7 @@ test("attach_evidence exige una URL real y al menos un item", () => {
 
 test("open_proposal exige al menos un compromiso completo", () => {
   const valida = {
-    decisionId: officialDecision.id,
+    decisionId: initialDecision.id,
     recommendation: "Mandar dLocal a prueba tecnica.",
     rationale: "Falta costo y compliance, pero la cobertura local decide.",
     commitments: [

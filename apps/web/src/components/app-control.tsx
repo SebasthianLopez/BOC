@@ -16,7 +16,7 @@ import {
 import {
   rejectUnknownEvidence,
   rejectUnknownGaps,
-} from "./decision-desk/use-decision-desk";
+} from "./decision-desk/guards";
 
 async function toolResult<T>(action: () => Promise<T> | T) {
   try {

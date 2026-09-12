@@ -13,11 +13,14 @@ import styles from "./decision-desk.module.css";
 export function ProposalApproval({
   proposal,
   busy,
+  error,
   onApprove,
   onDeny,
 }: {
   proposal: Proposal;
   busy: boolean;
+  /** Error del adaptador de P3. Si la propuesta no se pudo preparar, aprobar no puede funcionar. */
+  error?: string;
   onApprove: () => void;
   onDeny: () => void;
 }) {
@@ -46,11 +49,17 @@ export function ProposalApproval({
         ))}
       </ul>
 
+      {error ? (
+        <p role="alert" className="ck-error">
+          {error} Mientras tanto, aprobar no puede crear nada.
+        </p>
+      ) : null}
+
       <div className="ck-approval-actions">
         <button
           type="button"
           className="ck-btn ck-btn--primary"
-          disabled={busy}
+          disabled={busy || !!error}
           onClick={onApprove}
         >
           {busy ? "Trabajando…" : "Aprobar y crear compromisos"}

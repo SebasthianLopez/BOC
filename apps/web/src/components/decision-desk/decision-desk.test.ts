@@ -2,23 +2,21 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { initialDecision, initialGaps } from "@/lib/decisions";
 import { decisionContext } from "./agent-context";
 import type { Evidence, Gap } from "./contract";
 import { DecisionBrief } from "./decision-brief";
-import { initialGaps, officialDecision } from "./official-case";
-import {
-  rejectUnknownEvidence,
-  rejectUnknownGaps,
-  withEvidence,
-} from "./use-decision-desk";
+import { rejectUnknownEvidence, rejectUnknownGaps } from "./guards";
 
-const decision = officialDecision;
+const decision = initialDecision;
+const [alternativeId] = decision.alternatives.map((item) => item.id);
+const [criterionId] = decision.criteria.map((item) => item.id);
 
 function evidence(overrides: Partial<Evidence> = {}): Evidence {
   return {
     id: "ev-1",
-    alternativeId: "alt-dlocal",
-    criterionId: "costo",
+    alternativeId,
+    criterionId,
     claim: "Pagina de precios publicada.",
     url: "https://dlocal.com/",
     source: "dlocal.com",
@@ -27,62 +25,25 @@ function evidence(overrides: Partial<Evidence> = {}): Evidence {
   };
 }
 
-test("el caso oficial es el de PROYECTO.md: Stripe vs dLocal, 4 criterios", () => {
-  assert.equal(decision.id, "DEC-payments");
-  assert.deepEqual(
-    decision.alternatives.map((item) => item.name),
-    ["Stripe", "dLocal"],
-  );
-  assert.deepEqual(
-    decision.criteria.map((item) => item.id),
-    ["cobertura", "costo", "integracion", "cumplimiento"],
-  );
-  assert.equal(decision.participants.length, 3);
+/**
+ * La pagina depende de la forma de los datos de P3. Si P3 cambia el caso de
+ * manera que la matriz o los huecos dejan de tener sentido, esto lo marca aca
+ * en vez de en la demo.
+ */
+test("el caso de P3 es el que la pagina sabe dibujar", () => {
+  assert.equal(decision.alternatives.length, 2);
+  assert.ok(decision.criteria.length >= 2);
   assert.equal(decision.status, "open");
-});
-
-test("ninguna alternativa arranca con evidencia: esa es la foto inicial correcta", () => {
+  assert.ok(decision.participants.length > 0);
   for (const alternative of decision.alternatives) {
+    // Las celdas arrancan vacias a proposito: son los huecos del guion.
     assert.deepEqual(alternative.evidence, []);
   }
 });
 
-test("los tres huecos iniciales estan sembrados y apuntan a criterios reales", () => {
+test("los huecos iniciales de P3 apuntan a ids que existen en la pagina", () => {
   assert.equal(initialGaps.length, 3);
-  const problems = rejectUnknownGaps(decision, initialGaps);
-  assert.deepEqual(problems, []);
-  assert.deepEqual(
-    initialGaps.map((gap) => gap.kind),
-    ["evidence", "evidence", "owner"],
-  );
-  // El guion pide costo y cobertura sin evidencia, y el compromiso de Sofia sin duenio.
-  assert.equal(initialGaps[0].criterionId, "costo");
-  assert.equal(initialGaps[1].criterionId, "cobertura");
-  assert.match(initialGaps[2].message, /Sof/);
-});
-
-test("withEvidence fija la evidencia solo en la alternativa que corresponde", () => {
-  const merged = withEvidence(decision, [evidence()]);
-  const dlocal = merged.alternatives.find((item) => item.id === "alt-dlocal");
-  const stripe = merged.alternatives.find((item) => item.id === "alt-stripe");
-  assert.equal(dlocal?.evidence.length, 1);
-  assert.equal(stripe?.evidence.length, 0);
-  // El caso oficial no se muta.
-  assert.equal(
-    decision.alternatives.find((item) => item.id === "alt-dlocal")?.evidence
-      .length,
-    0,
-  );
-});
-
-test("withEvidence ignora una evidencia ya fijada", () => {
-  const once = withEvidence(decision, [evidence()]);
-  const twice = withEvidence(once, [evidence()]);
-  assert.equal(
-    twice.alternatives.find((item) => item.id === "alt-dlocal")?.evidence
-      .length,
-    1,
-  );
+  assert.deepEqual(rejectUnknownGaps(decision, initialGaps), []);
 });
 
 test("se rechaza la evidencia que apunta a algo que no esta en la pagina", () => {
@@ -100,12 +61,7 @@ test("se rechaza la evidencia que apunta a algo que no esta en la pagina", () =>
 
 test("se rechazan los huecos que apuntan a algo que no esta en la pagina", () => {
   const buenos: Gap[] = [
-    {
-      kind: "evidence",
-      alternativeId: "alt-dlocal",
-      criterionId: "cumplimiento",
-      message: "Sin evidencia de cumplimiento.",
-    },
+    { kind: "evidence", alternativeId, criterionId, message: "Falta evidencia." },
     { kind: "owner", message: "Nadie valida el contrato." },
   ];
   assert.deepEqual(rejectUnknownGaps(decision, buenos), []);
@@ -122,7 +78,7 @@ test("el contexto del agente nombra las celdas vacias para que pueda citarlas", 
     gaps: initialGaps,
     status: { status: "unconfigured", message: "sin conectar" },
   });
-  const todos = ["cobertura", "costo", "integracion", "cumplimiento"];
+  const todos = decision.criteria.map((item) => item.id);
   for (const alternative of context.selectedDecision.alternatives) {
     assert.deepEqual(alternative.criteriaWithoutEvidence, todos);
   }
@@ -132,16 +88,21 @@ test("el contexto del agente nombra las celdas vacias para que pueda citarlas", 
 });
 
 test("una celda con evidencia deja de contar como hueco en el contexto", () => {
-  const context = decisionContext({
-    decision: withEvidence(decision, [evidence()]),
-    gaps: [],
-  });
-  const dlocal = context.selectedDecision.alternatives.find(
-    (item) => item.id === "alt-dlocal",
+  const conEvidencia = {
+    ...decision,
+    alternatives: decision.alternatives.map((alternative) =>
+      alternative.id === alternativeId
+        ? { ...alternative, evidence: [evidence()] }
+        : alternative,
+    ),
+  };
+  const context = decisionContext({ decision: conEvidencia, gaps: [] });
+  const tocada = context.selectedDecision.alternatives.find(
+    (item) => item.id === alternativeId,
   );
-  assert.ok(dlocal);
-  assert.ok(!dlocal.criteriaWithoutEvidence.includes("costo"));
-  assert.ok(dlocal.criteriaWithoutEvidence.includes("cobertura"));
+  assert.ok(tocada);
+  assert.ok(!tocada.criteriaWithoutEvidence.includes(criterionId));
+  assert.equal(tocada.criteriaWithoutEvidence.length, decision.criteria.length - 1);
 });
 
 test("el contexto informa compromisos reales cuando el proveedor los devolvio", () => {
@@ -158,7 +119,7 @@ test("el contexto informa compromisos reales cuando el proveedor los devolvio", 
           owner: "Diego",
           dueDate: "2026-09-19",
           ambiguousId: "AMB-1",
-          url: null,
+          url: "https://ambiguous.ai/task/AMB-1",
         },
       ],
     },

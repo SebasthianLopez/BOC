@@ -7,14 +7,10 @@ import {
 import { AppControl } from "@/components/app-control";
 import { GenerativeUI } from "@/components/generative-ui";
 import { DecisionDesk } from "@/components/decision-desk/decision-desk";
-// INTEGRACION (P4): cuando entre P3 esto pasa a ser
-//   import { useDecisionWorkplace } from "@/lib/use-decision-workplace";
-// y se borra el stand-in de components/decision-desk/. El hook devuelve la
-// misma forma `DecisionWorkplace`, asi que nada mas en esta pagina cambia.
-import { useDecisionDesk } from "@/components/decision-desk/use-decision-desk";
+import { useDecisionWorkplace } from "@/lib/use-decision-workplace";
 
 export default function Home() {
-  const workplace = useDecisionDesk();
+  const workplace = useDecisionWorkplace();
 
   useConfigureSuggestions(
     {

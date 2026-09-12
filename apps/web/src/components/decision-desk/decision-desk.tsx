@@ -61,6 +61,7 @@ export function DecisionDesk({ workplace }: { workplace: DecisionWorkplace }) {
           <ProposalApproval
             proposal={proposal}
             busy={busy}
+            error={error}
             onApprove={() => void workplace.approve()}
             onDeny={() => void workplace.deny()}
           />
