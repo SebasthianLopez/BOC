@@ -1,0 +1,325 @@
+/*
+ * Decision Desk styles.
+ *
+ * P1 cannot edit `app/globals.css` (outside this lane), so anything the desk
+ * adds lives here as a CSS Module. Shared `ck-*` classes from globals.css are
+ * reused wherever they already fit; these rules only cover what is new, and
+ * they follow the same tokens: 1px var(--border), 12px muted labels, 8/16px radii.
+ */
+
+.section {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.sectionHeader h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.count {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Alternatives x criteria ------------------------------------------------ */
+
+.matrixWrap {
+  overflow-x: auto;
+}
+
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.matrix th,
+.matrix td {
+  border: 1px solid var(--border);
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.matrix thead th {
+  background: #f7f7f9;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.weight {
+  display: block;
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.altCell {
+  min-width: 180px;
+}
+
+.altCell strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.altCell p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cell {
+  min-width: 150px;
+}
+
+.cellEmpty {
+  background: #fdfbf6;
+}
+
+.missing {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.evidenceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.evidenceList li {
+  display: grid;
+  gap: 2px;
+}
+
+.evidenceList a {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.source {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.addedBy {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 6px;
+  font-size: 10px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+/* Gaps ------------------------------------------------------------------- */
+
+.gapList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.gapList li {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.gapKind {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 2px;
+}
+
+.gapWhere {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+/* Proposal and commitments ---------------------------------------------- */
+
+.commitmentList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.commitmentList li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.commitmentList strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.commitmentMeta {
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rationale {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 16px;
+  white-space: pre-line;
+}
+
+.recommendation {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.notConnected {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.notes li::before {
+  content: "— ";
+}
+
+/* Motion ----------------------------------------------------------------- */
+
+/*
+ * Restrained, Linear-style motion. Three jobs only: confirm that something
+ * landed, guide the eye to what changed, and give the approval gate enough
+ * weight that it does not slip past. Transform and opacity only, so nothing
+ * here triggers layout. Everything is off under prefers-reduced-motion.
+ */
+
+.section {
+  /* Motion tokens, scoped to the desk so globals.css stays untouched. */
+  --dur-ui: 240ms;
+  --dur-enter: 420ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --stagger: 60ms;
+  --rise: 10px;
+}
+
+@keyframes deskRise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise, 10px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes deskSettle {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * The moment the desk is built around: a cell that had no evidence gets some.
+ * The class flips from .cellEmpty to plain .cell, so a transition on the
+ * background is the whole effect — no JS, no re-mount needed.
+ */
+.cell {
+  transition: background-color var(--dur-enter, 420ms) var(--ease-out, ease-out);
+}
+
+/* New evidence mounts on its own, so only the new row animates. */
+.evidenceList li {
+  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
+}
+
+/* Gaps arrive as a set: stagger gives them a reading order. */
+.gapList li {
+  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
+}
+
+.commitmentList li {
+  animation: deskRise var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger, 60ms));
+}
+
+/* The approval gate is consequential, so it settles in rather than popping. */
+.approvalEnter {
+  animation: deskSettle var(--dur-enter, 420ms) var(--ease-out, ease-out) both;
+}
+
+.notConnected {
+  animation: deskRise var(--dur-ui, 240ms) var(--ease-out, ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evidenceList li,
+  .gapList li,
+  .commitmentList li,
+  .approvalEnter,
+  .notConnected {
+    animation: none;
+  }
+  .cell {
+    transition: none;
+  }
+}
