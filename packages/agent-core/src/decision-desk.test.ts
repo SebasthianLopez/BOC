@@ -3,6 +3,7 @@ import { afterEach, test } from "node:test";
 import { Exa } from "exa-js";
 import {
   detectGaps,
+  OFFICIAL_DUE_DATE,
   proposeDecision,
   researchAlternative,
 } from "./decision-desk";
@@ -14,6 +15,7 @@ import {
 } from "./decision-tools";
 import { EXA_UNAVAILABLE_MESSAGE, gapSchema, proposalSchema } from "./schemas";
 import { decisionDeskAgentConfig } from "./agent";
+import { DECISION_DESK_ROLE } from "./prompt";
 import type { Decision } from "./schemas";
 
 const decision: Decision = {
@@ -58,6 +60,18 @@ test("proposeDecision is provisional and contains the two reviewable commitments
     { owner: "Diego", title: "Crear una prueba de integración/sandbox con dLocal" },
     { owner: "Sofía", title: "Solicitar cotización y validar requisitos de compliance" },
   ]);
+  assert.deepEqual(proposal.commitments.map(({ dueDate }) => dueDate), [
+    OFFICIAL_DUE_DATE,
+    OFFICIAL_DUE_DATE,
+  ]);
+  assert.equal(proposal.commitments.some(({ dueDate }) => /^\d{4}-\d{2}-\d{2}$/.test(dueDate)), false);
+});
+
+test("prompt requires propose_decision before an unchanged visual proposal", () => {
+  assert.match(DECISION_DESK_ROLE, /FIRST call the server tool\s+propose_decision/);
+  assert.match(DECISION_DESK_ROLE, /open_proposal\s+once with that exact returned Proposal object/);
+  assert.match(DECISION_DESK_ROLE, /never construct a Proposal yourself/);
+  assert.match(DECISION_DESK_ROLE, /never invent an ISO date/);
 });
 
 test("researchAlternative returns no invented evidence without EXA_API_KEY", async () => {
